@@ -60,6 +60,6 @@ A pre-trained model is provided at [here](https://drive.google.com/file/d/1YwNPK
 Result examples:
 
 
-![Alt text](doc/0_init.jpg "optional title")
-![Alt text](doc/0_kpt.jpg "optional title")
-![Alt text](doc/0_shape.jpg "optional title")
+![Alt text](docs/0_init.jpg "optional title")
+![Alt text](docs/0_kpt.jpg "optional title")
+![Alt text](docs/0_shape.jpg "optional title")
