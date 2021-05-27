@@ -1,18 +1,16 @@
+import math
 import os
 import sys
-import numpy as np
-import scipy.io as sio
-from skimage import io
 import time
-import math
-import skimage
-import faceutil
+from math import acos, asin, atan, atan2, cos, sin
+
+import numpy as np
+
 from faceutil import mesh
 from faceutil.morphable_model import MorphabelModel
 from matlabutil import NormDirection
-from math import sin, cos, asin, acos, atan, atan2
-from PIL import Image
-import matplotlib.pyplot as plt
+
+import faceutil
 
 #  global data
 bfm = MorphabelModel('data/Out/BFM.mat')
