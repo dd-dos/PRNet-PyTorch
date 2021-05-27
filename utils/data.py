@@ -4,20 +4,24 @@ import sys
 import time
 from math import acos, asin, atan, atan2, cos, sin
 
+import matplotlib.pyplot as plt
 import numpy as np
+import scipy.io as sio
+import skimage
+from PIL import Image
+from skimage import io
 
-from faceutil import mesh
-from faceutil.morphable_model import MorphabelModel
-from matlabutil import NormDirection
-
-import faceutil
+from . import faceutil
+from .faceutil import mesh
+from .faceutil.morphable_model import MorphabelModel
+from .matlabutil import NormDirection
 
 #  global data
 bfm = MorphabelModel('data/Out/BFM.mat')
 default_init_image_shape = np.array([450, 450, 3])
 default_cropped_image_shape = np.array([256, 256, 3])
 default_uvmap_shape = np.array([256, 256, 3])
-face_mask_np = io.imread('uv-data/uv_face_mask.png') / 255.
+face_mask_np = io.imread('data/uv-data/uv_face_mask.png') / 255.
 face_mask_mean_fix_rate = (256 * 256) / np.sum(face_mask_np)
 
 
@@ -48,7 +52,7 @@ def readUVKpt(uv_kpt_path):
 #  global data
 uv_coords = faceutil.morphable_model.load.load_uv_coords('data/Out/BFM_UV.mat')
 uv_coords = process_uv(uv_coords)
-uv_kpt = readUVKpt('uv-data/uv_kpt_ind.txt')
+uv_kpt = readUVKpt('data/uv-data/uv_kpt_ind.txt')
 uvmap_place_holder = np.ones((256, 256, 1))
 
 
