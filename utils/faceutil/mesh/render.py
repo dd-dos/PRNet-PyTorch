@@ -36,7 +36,7 @@ def rasterize_triangles(vertices, triangles, h, w):
     '''
 
     # initial 
-    depth_buffer = np.zeros([h, w]) - 999999. #set the initial z to the farest position
+    depth_buffer = np.zeros([h, w], dtype = np.float32) - 999999. #set the initial z to the farest position
     triangle_buffer = np.zeros([h, w], dtype = np.int32) - 1  # if tri id = -1, the pixel has no triangle correspondance
     barycentric_weight = np.zeros([h, w, 3], dtype = np.float32)  # 
     
@@ -77,6 +77,7 @@ def render_colors(vertices, triangles, colors, h, w, c = 3, BG = None):
     colors = colors.astype(np.float32).copy()
     ###
     st = time()
+    import ipdb; ipdb.set_trace(context=10)
     mesh_core_cython.render_colors_core(
                 image, vertices, triangles,
                 colors,

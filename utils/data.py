@@ -17,16 +17,16 @@ from .faceutil.morphable_model import MorphabelModel
 from .matlabutil import NormDirection
 
 #  global data
-bfm = MorphabelModel('data/Out/BFM.mat')
-default_init_image_shape = np.array([450, 450, 3])
-default_cropped_image_shape = np.array([256, 256, 3])
-default_uvmap_shape = np.array([256, 256, 3])
-face_mask_np = io.imread('data/uv-data/uv_face_mask.png') / 255.
-face_mask_mean_fix_rate = (256 * 256) / np.sum(face_mask_np)
+BFM = MorphabelModel('data/Out/BFM.mat')
+DEFAULT_INIT_IMAGE_SHAPE = np.array([450, 450, 3])
+DEFAULT_CROPPED_IMAGE_SHAPE = np.array([256, 256, 3])
+DEFAULT_UVMAP_SHAPE = np.array([256, 256, 3])
+FACE_MASK_NP = io.imread('data/uv-data/uv_face_mask.png') / 255.
+FACE_MASK_MEAN_FIX_RATE = (256 * 256) / np.sum(FACE_MASK_NP)
 
 
 def process_uv(uv_coordinates):
-    [uv_h, uv_w, uv_c] = default_uvmap_shape
+    [uv_h, uv_w, uv_c] = DEFAULT_UVMAP_SHAPE
     uv_coordinates[:, 0] = uv_coordinates[:, 0] * (uv_w - 1)
     uv_coordinates[:, 1] = uv_coordinates[:, 1] * (uv_h - 1)
     uv_coordinates[:, 1] = uv_h - uv_coordinates[:, 1] - 1
@@ -40,29 +40,28 @@ def readUVKpt(uv_kpt_path):
     # txt is inversed
     x_line = lines[1]
     y_line = lines[0]
-    uv_kpt = np.zeros((68, 2)).astype(int)
+    UV_KPT = np.zeros((68, 2)).astype(int)
     x_tokens = x_line.strip().split(' ')
     y_tokens = y_line.strip().split(' ')
     for i in range(68):
-        uv_kpt[i][0] = int(float(x_tokens[i]))
-        uv_kpt[i][1] = int(float(y_tokens[i]))
-    return uv_kpt
+        UV_KPT[i][0] = int(float(x_tokens[i]))
+        UV_KPT[i][1] = int(float(y_tokens[i]))
+    return UV_KPT
 
-
-#  global data
-uv_coords = faceutil.morphable_model.load.load_uv_coords('data/Out/BFM_UV.mat')
-uv_coords = process_uv(uv_coords)
-uv_kpt = readUVKpt('data/uv-data/uv_kpt_ind.txt')
-uvmap_place_holder = np.ones((256, 256, 1))
+# global data
+UV_COORDS_TEMP = faceutil.morphable_model.load.load_uv_coords('data/Out/BFM_UV.mat')
+UV_COORDS = process_uv(UV_COORDS_TEMP)
+UV_KPT = readUVKpt('data/uv-data/uv_kpt_ind.txt')
+UVMAP_PLACE_HOLDER = np.ones((256, 256, 1))
 
 
 def getLandmark(ipt):
     # from uv map
-    kpt = ipt[uv_kpt[:, 0], uv_kpt[:, 1]]
+    kpt = ipt[UV_KPT[:, 0], UV_KPT[:, 1]]
     return kpt
 
 
-def bfm2Mesh(bfm_info, image_shape=default_init_image_shape):
+def bfm2Mesh(bfm_info, image_shape=DEFAULT_INIT_IMAGE_SHAPE):
     """
     generate mesh data from 3DMM (bfm2009) parameters
     :param bfm_info:
@@ -79,10 +78,10 @@ def bfm2Mesh(bfm_info, image_shape=default_init_image_shape):
 
     # 2. generate mesh_numpy
     # shape & exp param
-    vertices = bfm.generate_vertices(shape_para, exp_para)
+    vertices = BFM.generate_vertices(shape_para, exp_para)
     # texture param
-    tex = bfm.generate_colors(tex_para)
-    norm = NormDirection(vertices, bfm.model['tri'])
+    tex = BFM.generate_colors(tex_para)
+    norm = NormDirection(vertices, BFM.model['tri'])
 
     # color param
     [Gain_r, Gain_g, Gain_b, Offset_r, Offset_g, Offset_b, c] = color_Para[0]
@@ -118,13 +117,13 @@ def bfm2Mesh(bfm_info, image_shape=default_init_image_shape):
     t = pose_para[3:6, 0]
 
     # 3ddfa-R: radian || normal transform - R:degree
-    transformed_vertices = bfm.transform_3ddfa(vertices, s, angles, t)
+    transformed_vertices = BFM.transform_3ddfa(vertices, s, angles, t)
     projected_vertices = transformed_vertices.copy()  # using stantard camera & orth projection as in 3DDFA
     image_vertices = projected_vertices.copy()
     # should not -1
     image_vertices[:, 1] = image_h - image_vertices[:, 1]
-    mesh_info = {'vertices': image_vertices, 'triangles': bfm.full_triangles,
-                 'full_triangles': bfm.full_triangles,
+    mesh_info = {'vertices': image_vertices, 'triangles': BFM.full_triangles,
+                 'full_triangles': BFM.full_triangles,
                  'colors': tex_color}
     # 'landmarks': bfm_info['pt3d_68'].T
     return mesh_info
@@ -138,7 +137,7 @@ def UVmap2Mesh(uv_position_map, uv_texture_map=None, only_foreface=True, is_extr
     :param only_foreface:
     :return: mesh data
     """
-    [uv_h, uv_w, uv_c] = default_uvmap_shape
+    [uv_h, uv_w, uv_c] = DEFAULT_UVMAP_SHAPE
     vertices = []
     colors = []
     triangles = []
@@ -159,7 +158,7 @@ def UVmap2Mesh(uv_position_map, uv_texture_map=None, only_foreface=True, is_extr
                         triangles.append([pa, pd, pb])
 
                 else:
-                    if face_mask_np[i, j] == 0:
+                    if FACE_MASK_NP[i, j] == 0:
                         vertices.append(np.array([0, 0, 0]))
                         colors.append(np.array([0, 0, 0]))
                         continue
@@ -174,8 +173,8 @@ def UVmap2Mesh(uv_position_map, uv_texture_map=None, only_foreface=True, is_extr
                             if is_extra_triangle:
                                 pe = (i - 1) * uv_h + j + 1
                                 pf = (i + 1) * uv_h + j
-                                if (face_mask_np[i, j + 1] > 0) and (face_mask_np[i + 1, j + 1] > 0) and (face_mask_np[i + 1, j] > 0) and (
-                                        face_mask_np[i - 1, j + 1] > 0 and face_mask_np[i - 1, j] > 0):
+                                if (FACE_MASK_NP[i, j + 1] > 0) and (FACE_MASK_NP[i + 1, j + 1] > 0) and (FACE_MASK_NP[i + 1, j] > 0) and (
+                                        FACE_MASK_NP[i - 1, j + 1] > 0 and FACE_MASK_NP[i - 1, j] > 0):
                                     triangles.append([pa, pb, pc])
                                     triangles.append([pa, pc, pb])
                                     triangles.append([pa, pc, pe])
@@ -195,11 +194,11 @@ def UVmap2Mesh(uv_position_map, uv_texture_map=None, only_foreface=True, is_extr
                                     triangles.append([pb, pf, pd])
 
                             else:
-                                if not face_mask_np[i, j + 1] == 0:
-                                    if not face_mask_np[i - 1, j] == 0:
+                                if not FACE_MASK_NP[i, j + 1] == 0:
+                                    if not FACE_MASK_NP[i - 1, j] == 0:
                                         triangles.append([pa, pb, pc])
                                         triangles.append([pa, pc, pb])
-                                    if not face_mask_np[i + 1, j + 1] == 0:
+                                    if not FACE_MASK_NP[i + 1, j + 1] == 0:
                                         triangles.append([pa, pb, pd])
                                         triangles.append([pa, pd, pb])
     else:
@@ -214,7 +213,7 @@ def UVmap2Mesh(uv_position_map, uv_texture_map=None, only_foreface=True, is_extr
                     if (i > 0) & (i < uv_h - 1) & (j < uv_w - 1):
                         triangles.append([pa, pb, pc])
                 else:
-                    if face_mask_np[i, j] == 0:
+                    if FACE_MASK_NP[i, j] == 0:
                         vertices.append(np.array([0, 0, 0]))
                         colors.append(np.array([0, 0, 0]))
                         continue
@@ -225,8 +224,8 @@ def UVmap2Mesh(uv_position_map, uv_texture_map=None, only_foreface=True, is_extr
                         pb = i * uv_h + j + 1
                         pc = (i - 1) * uv_h + j
                         if (i > 0) & (i < uv_h - 1) & (j < uv_w - 1):
-                            if not face_mask_np[i, j + 1] == 0:
-                                if not face_mask_np[i - 1, j] == 0:
+                            if not FACE_MASK_NP[i, j + 1] == 0:
+                                if not FACE_MASK_NP[i - 1, j] == 0:
                                     triangles.append([pa, pb, pc])
                                     triangles.append([pa, pc, pb])
 
@@ -247,17 +246,17 @@ def mesh2UVmap(mesh_data):
     :param mesh_data:
     :return: uv position map and corresponding texture
     """
-    [uv_h, uv_w, uv_c] = default_uvmap_shape
+    [uv_h, uv_w, uv_c] = DEFAULT_UVMAP_SHAPE
     vertices = mesh_data['vertices']
     colors = mesh_data['colors']
     triangles = mesh_data['full_triangles']
     # colors = colors / np.max(colors)
-    # model_image = mesh.render.render_colors(vertices, bfm.triangles, colors, image_h, image_w) # only for show
+    # model_image = mesh.render.render_colors(vertices, BFM.triangles, colors, image_h, image_w) # only for show
 
-    uv_texture_map = mesh.render.render_colors(uv_coords, triangles, colors, uv_h, uv_w, uv_c)
+    uv_texture_map = mesh.render.render_colors(UV_COORDS, triangles, colors, uv_h, uv_w, uv_c)
     position = vertices.copy()
     position[:, 2] = position[:, 2] - np.min(position[:, 2])  # translate z
-    uv_position_map = mesh.render.render_colors(uv_coords, triangles, position, uv_h, uv_w, uv_c)
+    uv_position_map = mesh.render.render_colors(UV_COORDS, triangles, position, uv_h, uv_w, uv_c)
     return uv_position_map, uv_texture_map
 
 

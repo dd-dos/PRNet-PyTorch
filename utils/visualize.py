@@ -1,11 +1,56 @@
+# from data import BFM, modelParam2Mesh, UVMap2Mesh
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
-from skimage import io
-from faceutil import mesh
-# from data import bfm, modelParam2Mesh, UVMap2Mesh
-import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from skimage import io, transform
-from data import UVmap2Mesh, uv_kpt, bfm2Mesh, getLandmark, mesh2UVmap, bfm
+
+from .data import BFM, UV_KPT, UVmap2Mesh, bfm2Mesh, getLandmark, mesh2UVmap
+from .faceutil import mesh
+
+
+def showTriangularMesh(triangles: np.ndarray):
+    num_triangles = int(triangles.shape[0]/3)
+    tri_idx = [(3*i, 3*i+1, 3*i+2) for i in range(num_triangles)]
+    _triangles = triangles.transpose(1,0)
+
+    ax = plt.gca(projection="3d")
+    ax.plot_trisurf(_triangles[0], _triangles[1], _triangles[2], triangles=tri_idx)     
+    
+    plt.show()
+    plt.close()
+    plt.clf()
+
+
+def showVertices(vertices: np.ndarray, v_type='3D'):
+    if v_type=='3D':
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+
+        _vertices = vertices.transpose(1, 0)
+        ax.scatter(_vertices[0],
+                   _vertices[1],
+                   _vertices[2],
+                   marker=".")
+
+        plt.show() 
+        plt.close()
+    elif v_type=='2D':
+        # ax, fig = plt.figure()
+
+        # _vertices = vertices.transpose(1, 0)
+        # ax.scatter(_vertices[0],
+        #            _vertices[1],
+        #            marker=".")
+        _vertices = vertices.transpose(1, 0)
+        plt.scatter(_vertices[0],
+                    _vertices[1],
+                    marker='.')
+        plt.show() 
+        plt.close()        
+    else:
+        return
 
 
 def showLandmark(image, kpt):
@@ -49,7 +94,7 @@ def showGTLandmark(image_path):
 
     mesh_info = bfm2Mesh(bfm_info, image.shape)
 
-    kpt2 = mesh_info['vertices'][bfm.kpt_ind]
+    kpt2 = mesh_info['vertices'][BFM.kpt_ind]
     showLandmark2(image, kpt, kpt2)
     return kpt, kpt2
 
