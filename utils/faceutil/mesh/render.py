@@ -4,7 +4,7 @@ only use rasterization render here.
 Note that:
 1. Generally, render func includes camera, light, raterize. Here no camera and light(I write these in other files)
 2. Generally, the input vertices are normalized to [-1,1] and cetered on [0, 0]. (in world space)
-   Here, the vertices are using image coords, which centers on [w/2, h/2] with the y-axis pointing to oppisite direction.
+   Here, the vertices are using image coords, which centers on [weight/2, height/2] with the y-axis pointing to oppisite direction.
  Means: render here only conducts interpolation.(I just want to make the input flexible)
 
 Author: Yao Feng 
@@ -19,26 +19,26 @@ from time import time
 
 from .cython import mesh_core_cython
 
-def rasterize_triangles(vertices, triangles, h, w):
+def rasterize_triangles(vertices, triangles, height, weight):
     ''' 
     Args:
         vertices: [nver, 3]
         triangles: [ntri, 3]
-        h: height
-        w: width
+        height: height
+        weight: width
     Returns:
-        depth_buffer: [h, w] saves the depth, here, the bigger the z, the fronter the point.
-        triangle_buffer: [h, w] saves the tri id(-1 for no triangle). 
-        barycentric_weight: [h, w, 3] saves corresponding barycentric weight.
+        depth_buffer: [height, weight] saves the depth, here, the bigger the z, the fronter the point.
+        triangle_buffer: [height, weight] saves the tri id(-1 for no triangle). 
+        barycentric_weight: [height, weight, 3] saves corresponding barycentric weight.
 
     # Each triangle has 3 vertices & Each vertex has 3 coordinates x, y, z.
-    # h, w is the size of rendering
+    # height, weight is the size of rendering
     '''
 
     # initial 
-    depth_buffer = np.zeros([h, w], dtype = np.float32) - 999999. #set the initial z to the farest position
-    triangle_buffer = np.zeros([h, w], dtype = np.int32) - 1  # if tri id = -1, the pixel has no triangle correspondance
-    barycentric_weight = np.zeros([h, w, 3], dtype = np.float32)  # 
+    depth_buffer = np.zeros([height, weight], dtype = np.float32) - 999999. #set the initial z to the farest position
+    triangle_buffer = np.zeros([height, weight], dtype = np.int32) - 1  # if tri id = -1, the pixel has no triangle correspondance
+    barycentric_weight = np.zeros([height, weight, 3], dtype = np.float32)  # 
     
     vertices = vertices.astype(np.float32).copy()
     triangles = triangles.astype(np.int32).copy()
@@ -47,29 +47,29 @@ def rasterize_triangles(vertices, triangles, h, w):
                 vertices, triangles,
                 depth_buffer, triangle_buffer, barycentric_weight, 
                 vertices.shape[0], triangles.shape[0], 
-                h, w)
+                height, weight)
 
-def render_colors(vertices, triangles, colors, h, w, c = 3, BG = None):
+def render_colors(vertices, triangles, colors, height, weight, channel = 3, BG = None):
     ''' render mesh with colors
     Args:
         vertices: [nver, 3]
         triangles: [ntri, 3] 
         colors: [nver, 3]
-        h: height
-        w: width  
-        c: channel
+        height: height
+        weight: width  
+        channel: channel
         BG: background image
     Returns:
-        image: [h, w, c]. rendered image./rendering.
+        image: [height, weight, channel]. rendered image./rendering.
     '''
 
     # initial 
     if BG is None:
-        image = np.zeros((h, w, c), dtype = np.float32)
+        image = np.zeros((height, weight, channel), dtype = np.float32)
     else:
-        assert BG.shape[0] == h and BG.shape[1] == w and BG.shape[2] == c
+        assert BG.shape[0] == height and BG.shape[1] == weight and BG.shape[2] == channel
         image = BG
-    depth_buffer = np.zeros([h, w], dtype = np.float32, order = 'C') - 999999.
+    depth_buffer = np.zeros([height, weight], dtype = np.float32, order = 'C') - 999999.
 
     # change orders. --> C-contiguous order(column major)
     vertices = vertices.astype(np.float32).copy()
@@ -77,17 +77,17 @@ def render_colors(vertices, triangles, colors, h, w, c = 3, BG = None):
     colors = colors.astype(np.float32).copy()
     ###
     st = time()
-    import ipdb; ipdb.set_trace(context=10)
+
     mesh_core_cython.render_colors_core(
                 image, vertices, triangles,
                 colors,
                 depth_buffer,
                 vertices.shape[0], triangles.shape[0], 
-                h, w, c)
+                height, weight, channel)
     return image
 
 
-def render_texture(vertices, triangles, texture, tex_coords, tex_triangles, h, w, c = 3, mapping_type = 'nearest', BG = None):
+def render_texture(vertices, triangles, texture, tex_coords, tex_triangles, height, weight, channel = 3, mapping_type = 'nearest', BG = None):
     ''' render mesh with texture map
     Args:
         vertices: [3, nver]
@@ -95,19 +95,19 @@ def render_texture(vertices, triangles, texture, tex_coords, tex_triangles, h, w
         texture: [tex_h, tex_w, 3]
         tex_coords: [ntexcoords, 3]
         tex_triangles: [ntri, 3]
-        h: height of rendering
-        w: width of rendering
-        c: channel
+        height: height of rendering
+        weight: width of rendering
+        channel: channel
         mapping_type: 'bilinear' or 'nearest'
     '''
     # initial 
     if BG is None:
-        image = np.zeros((h, w, c), dtype = np.float32)
+        image = np.zeros((height, weight, channel), dtype = np.float32)
     else:
-        assert BG.shape[0] == h and BG.shape[1] == w and BG.shape[2] == c
+        assert BG.shape[0] == height and BG.shape[1] == weight and BG.shape[2] == channel
         image = BG
 
-    depth_buffer = np.zeros([h, w], dtype = np.float32, order = 'C') - 999999.
+    depth_buffer = np.zeros([height, weight], dtype = np.float32, order = 'C') - 999999.
     
     tex_h, tex_w, tex_c = texture.shape
     if mapping_type == 'nearest':
@@ -129,7 +129,7 @@ def render_texture(vertices, triangles, texture, tex_coords, tex_triangles, h, w
                 texture, tex_coords, tex_triangles,
                 depth_buffer,
                 vertices.shape[0], tex_coords.shape[0], triangles.shape[0], 
-                h, w, c,
+                height, weight, channel,
                 tex_h, tex_w, tex_c,
                 mt)
     return image
