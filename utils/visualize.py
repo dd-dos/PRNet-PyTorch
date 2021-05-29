@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
+import tqdm
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from skimage import io, transform
@@ -10,13 +11,21 @@ from .data import BFM, UV_KPT, UVmap2Mesh, bfm2Mesh, getLandmark, mesh2UVmap
 from .faceutil import mesh
 
 
-def showTriangularMesh(triangles: np.ndarray):
-    num_triangles = int(triangles.shape[0]/3)
-    tri_idx = [(3*i, 3*i+1, 3*i+2) for i in range(num_triangles)]
+def showTriangularMesh(vertices: np.ndarray, triangles: np.ndarray):
+    num_triangles = triangles.shape[0]
     _triangles = triangles.transpose(1,0)
+    _vertices = []
+    for i in tqdm.tqdm(range(num_triangles)):
+        tri_p0_ind, tri_p1_ind, tri_p2_ind = triangles[i]
+        _vertices += [vertices[tri_p0_ind],
+                      vertices[tri_p1_ind],
+                      vertices[tri_p2_ind]]
+        
+    _vertices = np.array(_vertices).transpose(1,0)
 
     ax = plt.gca(projection="3d")
-    ax.plot_trisurf(_triangles[0], _triangles[1], _triangles[2], triangles=tri_idx)     
+    tri_idx = [(3*i, 3*i+1, 3*i+2) for i in range(num_triangles)]
+    ax.plot_trisurf(_vertices[0], _vertices[1], _vertices[2], triangles=tri_idx)     
     
     plt.show()
     plt.close()
