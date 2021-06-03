@@ -87,7 +87,7 @@ def rotateData(x, y, angle_range=45, specify_angle=None):
     # tex = np.ones((256, 256, 3))
     # from visualize import show
     # show([rotate_y, tex, rotate_x.astype(np.float32)], mode='uvmap')
-    return rotate_x, rotate_y
+    return rotate_x, rotate_y, angle
 
 
 def gaussNoise(x, mean=0, var=0.001):
@@ -147,9 +147,6 @@ def channelScale(x, min_rate=0.6, max_rate=1.4):
 
 
 def prnAugment_torch(x, y, is_rotate=True):
-    if is_rotate:
-        if np.random.rand() > 0.5:
-            x, y = rotateData(x, y, 90)
     if np.random.rand() > 0.75:
         x = randomErase(x)
     if np.random.rand() > 0.5:

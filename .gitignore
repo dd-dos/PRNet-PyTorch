@@ -3,3 +3,5 @@
 *.tgz
 data
 *.pth
+*.jpg
+runs

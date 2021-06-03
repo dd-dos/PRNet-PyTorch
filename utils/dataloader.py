@@ -1,11 +1,13 @@
 import numpy as np
 import scipy.io as sio
-from skimage import io
-from torch.utils.data import Dataset, DataLoader
 import torch
-from torchvision import transforms
-import augmentation
 from PIL import Image
+import cv2
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
+import os
+
+from . import augmentation
 
 
 class ImageData:
@@ -84,7 +86,6 @@ def toTensor(image):
     image = torch.from_numpy(image)
     return image
 
-
 class DataGenerator(Dataset):
     def __init__(self, all_image_data, mode='posmap', is_aug=False, is_pre_read=True):
         super(DataGenerator, self).__init__()
@@ -113,7 +114,6 @@ class DataGenerator(Dataset):
 
     def __getitem__(self, index):
         if self.mode == 'posmap':
-
             image = (self.all_image_data[index].getImage() / 255.0).astype(np.float32)
             pos = self.all_image_data[index].getPosmap().astype(np.float32)
             # data augmentation
@@ -142,3 +142,56 @@ def getDataLoader(all_image_data, mode='posmap', batch_size=16, is_shuffle=False
     dataset = DataGenerator(all_image_data=all_image_data, mode=mode, is_aug=is_aug, is_pre_read=is_pre_read)
     train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=is_shuffle, num_workers=num_worker, pin_memory=True)
     return train_loader
+
+
+def FaceDataset(Dataset):
+    def __init__(self, root, aug=True):
+        self.root = root
+        self.img_list, self.uv_list = self._get_data()
+        self.aug = aug
+
+    def __len__(self):
+        assert len(self.img_list) == len(self.uv_list)
+        return len(self.img_list)
+
+    def __getitem__(self, idx):
+        img_path = self.img_list[idx]
+        uv_path = self.img_list[idx]
+        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_RGB2BGR)
+        uv =  np.load(uv_path)
+        img, uv = self._preprocess(img, uv)
+
+        return img, uv 
+
+    def _get_data(self):
+        img_list = []
+        uv_list = []
+
+        for root_dir, dirs, files in os.walk(self.root):
+            for dir_name in dirs:
+                image_name = dir_name
+                if not os.path.exists(root + '/' + dir_name + '/' + image_name + '_cropped.jpg'):
+                    print('skip ', root + '/' + dir_name)
+                    continue
+                img_path = root + '/' + dir_name + '/' + image_name + '_cropped.jpg'
+                uv_path = root + '/' + dir_name + '/' + image_name + '_cropped_uv_posmap.npy'
+                
+                img_list.append(img_path)
+                uv_list.append(img_path)
+
+        return img_list, uv_list
+
+    
+    def _preprocess(self, img, uv):
+        _img = (img/255.0).astype(np.float32)
+        _uv = uv.astype(np.float32)
+
+        if self.is_aug:
+            _img, _uv = augmentation.prnAugment_torch(_img, _uv)
+        for i in range(3):
+                _img[:, :, i] = (_img[:, :, i] - _img[:, :, i].mean()) / np.sqrt(_img[:, :, i].var() + 0.001)
+        _img = self.toTensor(_img)
+        _uv = _uv / 280.
+        _uv = self.toTensor(_uv)
+
+        return _img, _uv

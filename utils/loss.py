@@ -1,20 +1,20 @@
 import numpy as np
-from skimage import io, transform
-from data import uv_kpt
-from data import face_mask_np, face_mask_mean_fix_rate
-from dataloader import toTensor
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
+import torch.nn.functional as F
+from skimage import io, transform
 
-weight_mask_np = io.imread('uv-data/uv_weight_mask.png').astype(float)
+from .data import FACE_MASK_MEAN_FIX_RATE, FACE_MASK_NP, UV_KPT
+from .dataloader import toTensor
+
+weight_mask_np = io.imread('data/uv-data/uv_weight_mask.png').astype(float)
 weight_mask_np[weight_mask_np == 255] = 256
 weight_mask_np = weight_mask_np / 16
 
 weight_mask = torch.from_numpy(weight_mask_np)
-face_mask = torch.from_numpy(face_mask_np)
-face_mask_3D = toTensor(np.repeat(np.reshape(face_mask_np, (256, 256, 1)), 3, -1))
-foreface_ind = np.array(np.where(face_mask_np > 0)).T
+face_mask = torch.from_numpy(FACE_MASK_NP)
+face_mask_3D = toTensor(np.repeat(np.reshape(FACE_MASK_NP, (256, 256, 1)), 3, -1))
+foreface_ind = np.array(np.where(FACE_MASK_NP > 0)).T
 if torch.cuda.is_available():
     weight_mask = weight_mask.cuda().float()
     face_mask = face_mask.cuda().float()
@@ -51,7 +51,7 @@ def UVLoss(is_foreface=False, is_weighted=False, is_nme=False):
             if is_weighted:
                 dist = dist * self.weight_mask
             if is_foreface:
-                dist = dist * (self.face_mask * face_mask_mean_fix_rate)
+                dist = dist * (self.face_mask * FACE_MASK_MEAN_FIX_RATE)
 
             loss = torch.mean(dist)
             return loss * self.rate
@@ -79,10 +79,10 @@ def PRNError(is_2d=False, is_normalized=True, is_foreface=True, is_landmark=Fals
         assert (not (is_foreface and is_landmark))
         y_true = y_gt.copy()
         y_pred = y_fit.copy()
-        y_true[:, :, 2] = y_true[:, :, 2] * face_mask_np
-        y_pred[:, :, 2] = y_pred[:, :, 2] * face_mask_np
-        y_true_mean = np.mean(y_true[:, :, 2]) * face_mask_mean_fix_rate
-        y_pred_mean = np.mean(y_pred[:, :, 2]) * face_mask_mean_fix_rate
+        y_true[:, :, 2] = y_true[:, :, 2] * FACE_MASK_NP
+        y_pred[:, :, 2] = y_pred[:, :, 2] * FACE_MASK_NP
+        y_true_mean = np.mean(y_true[:, :, 2]) * FACE_MASK_MEAN_FIX_RATE
+        y_pred_mean = np.mean(y_pred[:, :, 2]) * FACE_MASK_MEAN_FIX_RATE
         y_true[:, :, 2] = y_true[:, :, 2] - y_true_mean
         y_pred[:, :, 2] = y_pred[:, :, 2] - y_pred_mean
 
@@ -92,15 +92,15 @@ def PRNError(is_2d=False, is_normalized=True, is_foreface=True, is_landmark=Fals
                 gt = landmarks.copy()
                 gt[:, 2] = gt[:, 2] - gt[:, 2].mean()
 
-                pred = y_pred[uv_kpt[:, 0], uv_kpt[:, 1]]
+                pred = y_pred[UV_KPT[:, 0], UV_KPT[:, 1]]
                 diff = np.square(gt - pred)
                 if is_2d:
                     dist = np.sqrt(np.sum(diff[:, 0:2], axis=-1))
                 else:
                     dist = np.sqrt(np.sum(diff, axis=-1))
             else:
-                gt = y_true[uv_kpt[:, 0], uv_kpt[:, 1]]
-                pred = y_pred[uv_kpt[:, 0], uv_kpt[:, 1]]
+                gt = y_true[UV_KPT[:, 0], UV_KPT[:, 1]]
+                pred = y_pred[UV_KPT[:, 0], UV_KPT[:, 1]]
                 gt[:, 2] = gt[:, 2] - gt[:, 2].mean()
                 pred[:, 2] = pred[:, 2] - pred[:, 2].mean()
                 diff = np.square(gt - pred)
@@ -116,20 +116,20 @@ def PRNError(is_2d=False, is_normalized=True, is_foreface=True, is_landmark=Fals
                 # 3d
                 dist = np.sqrt(np.sum(diff, axis=-1))
             if is_foreface:
-                dist = dist * face_mask_np * face_mask_mean_fix_rate
+                dist = dist * FACE_MASK_NP * FACE_MASK_MEAN_FIX_RATE
 
         if is_normalized:  # 2D bbox size
             # bbox_size = np.sqrt(np.sum(np.square(bbox[0, :] - bbox[1, :])))
             if is_landmark:
                 bbox_size = np.sqrt((bbox[0, 0] - bbox[1, 0]) * (bbox[0, 1] - bbox[1, 1]))
             else:
-                face_vertices = y_gt[face_mask_np > 0]
+                face_vertices = y_gt[FACE_MASK_NP > 0]
                 minx, maxx = np.min(face_vertices[:, 0]), np.max(face_vertices[:, 0])
                 miny, maxy = np.min(face_vertices[:, 1]), np.max(face_vertices[:, 1])
                 llength = np.sqrt((maxx - minx) * (maxy - miny))
                 bbox_size = llength
         else:  # 3D bbox size
-            face_vertices = y_gt[face_mask_np > 0]
+            face_vertices = y_gt[FACE_MASK_NP > 0]
             minx, maxx = np.min(face_vertices[:, 0]), np.max(face_vertices[:, 0])
             miny, maxy = np.min(face_vertices[:, 1]), np.max(face_vertices[:, 1])
             minz, maxz = np.min(face_vertices[:, 2]), np.max(face_vertices[:, 2])

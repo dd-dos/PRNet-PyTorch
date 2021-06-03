@@ -1,0 +1,130 @@
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
+
+import argparse
+import logging
+import os
+from datetime import datetime
+
+import torch
+from torch.optim import Adam, lr_scheduler
+from torch.utils.data import DataLoader
+
+from models.resfcn256 import ResFCN256
+from utils.data import UVmap2Mesh
+from utils.dataset import FaceDataset
+from utils.visualize import saveTrainingSamples
+
+logging.basicConfig()
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+BEST_LOSS = 10000.
+EPOCH = 0
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else "cpu")
+
+def train(args):
+    model = ResFCN256()
+    train_set = FaceDataset(root=args.train_root)
+    test_set = FaceDataset(root=args.test_root, aug=False)
+
+    train_loader = DataLoader(dataset=train_set,
+                              batch_size=args.batch_size,
+                              shuffle=True,
+                              num_workers=args.num_workers,
+                              pin_memory=True)
+
+    test_loader = DataLoader(dataset=test_set,
+                             batch_size=args.test_size,
+                             shuffle=False,
+                             num_workers=args.num_workers,
+                             pin_memory=True)
+
+    optimizer = Adam(params=model.parameters(), lr=1e-4)
+    
+    if args.pretrained:
+        weight = torch.load(args.pretrained)
+        model = model.load_state_dict(weight)
+
+    model.to(DEVICE)
+    model.train()
+
+    ############################# training #############################
+    for epoch in range(10000):
+        EPOCH = epoch
+        logger.info("=> Training phase.")
+        for idx, item in enumerate(train_loader):
+            imgs, gtposes, _ = item
+            imgs.to(DEVICE)
+            gtposes.to(DEVICE)
+
+            optimizer.zero_grad()
+            losses, metrics, _ = model(imgs, gtposes)
+
+            loss = torch.mean(losses)
+            metric = torch.mean(metrics)
+
+            loss.backward()
+            optimizer.step()
+
+            if idx%100==99:
+                writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx)
+                writer.add_scalar('Train/Normalized-Mean-Square-Error', metric.item(), idx)
+                logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
+
+        ############################# testing #############################
+        test(model, test_loader, args.save_path, args.visualize_path)
+
+
+def test(model, test_loader, save_path, visualize_path=None):
+    global BEST_LOSS
+    today = datetime.today().strftime('%Y-%m-%d')
+    save_path = os.path.join(save_path,today)
+    os.makedirs(save_path, exist_ok=True)
+
+    model.eval()
+    logger.info("=> Testing phase.")
+    test_loss = 0.
+    with torch.no_grad():
+        for idx, item in enumerate(test_loader):
+            imgs, gtposes, metas = item
+            imgs.to(DEVICE)
+            gtposes.to(DEVICE)
+
+            _, metrics, poses = model(imgs, gtposes)
+            test_loss += torch.mean(metrics)
+
+            if idx==0:
+                saveTrainingSamples(gtposes, poses, metas, visualize_path)
+
+        test_loss /= len(test_loader)
+        writer.add_scalar("Test/Normalized-Mean-Square-Error", test_loss, EPOCH)   
+
+        if test_loss <= BEST_LOSS:
+            BEST_LOSS = test_loss
+            logger.info(f"==> New bess loss: {test_loss}. Saving best model...")
+            torch.save(model.state_dict(), os.path.join(save_path,"best.pth"))
+            logger.info(f"==> Done saving!")
+        else:
+            logging.info(f"==> Current loss {test_loss} - Best loss {BEST_LOSS}. Saving last model...")    
+            torch.save(model.state_dict(), os.path.join(save_path,"last.pth"))
+            logger.info(f"==> Done saving!")
+
+
+def opt():
+    parser = argparse.ArgumentParser(description='model arguments')
+    parser.add_argument('--train-root', type=str, required=True, help='path to train data set')
+    parser.add_argument('--test-root', type=str, required=True, help='path to test data set')
+    parser.add_argument('--batch-size', type=int, default=32, help='batch size')
+    parser.add_argument('--test-size', type=int, default=64, help='test size')
+    parser.add_argument('--save-path', type=str, required=True, help='model save path')
+    parser.add_argument('--num-workers', type=int, default=8, help='number of workers to push data')
+    parser.add_argument('--visualize-path', type=str, help='path to save some samples for visualization')
+    parser.add_argument('--pretrained', type=str, help='path to pretrained weight')
+    
+    args = parser.parse_args()
+    return args
+
+if __name__=="__main__":
+    args = opt()
+    train(args)

@@ -1,9 +1,9 @@
 import numpy as np
-from data import UVmap2Mesh, getLandmark
-from visualize import showImage, showMesh, show
+from .data import UVmap2Mesh, getLandmark
+from .visualize import showImage, showMesh, show
 import matplotlib.pyplot as plt
 import pyrender, trimesh
-from faceutil import mesh
+from .faceutil import mesh
 import cv2
 
 end_list = np.array([17, 22, 27, 42, 48, 31, 36, 68], dtype=np.int32) - 1
