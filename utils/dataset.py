@@ -32,7 +32,6 @@ class FaceDataset(Dataset):
         
         img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_RGB2BGR)
         uv =  np.load(uv_path, allow_pickle=True)
-        import ipdb; ipdb.set_trace(context=10)
 
         img, uv, rotate_angle = self._preprocess(img, uv)
 
