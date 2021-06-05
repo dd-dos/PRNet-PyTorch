@@ -32,7 +32,8 @@ class FaceDataset(Dataset):
         
         img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_RGB2BGR)
         uv =  np.load(uv_path, allow_pickle=True)
-        
+        import ipdb; ipdb.set_trace(context=10)
+
         img, uv, rotate_angle = self._preprocess(img, uv)
 
         meta = {
@@ -54,8 +55,8 @@ class FaceDataset(Dataset):
             parent_dir = "/".join(split_path[:-1])
             uv_path = os.path.join(parent_dir, true_name + '_cropped_uv_posmap.npy')
 
-            img_list.append(img_path)
-            uv_list.append(uv_path)
+            img_list.append(str(img_path))
+            uv_list.append(str(uv_path))
 
         return img_list, uv_list
 

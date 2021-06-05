@@ -1,7 +1,12 @@
 *.vscode
 *.pyc
 *.tgz
-data
 *.pth
 *.jpg
 runs
+data/300WLP-3D
+data/AFLW2000-3D
+data/images
+data/Out
+data/uv_data
+data/face3d
