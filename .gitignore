@@ -3,6 +3,7 @@
 *.tgz
 *.pth
 *.jpg
+*.zip
 runs
 data/300WLP-3D
 data/AFLW2000-3D
