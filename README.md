@@ -17,7 +17,7 @@ I hope this re-implementation can help you.
     torchvision 0.3.0
     
 ## Getting started
-Please refer to [face3d](https://github.com/YadiraF/face3d/blob/master/examples/Data/BFM/readme.md) to prepare BFM data. And move the generated files in Out/
+Please refer to [face3d](https://github.com/dd-dos/face3d/tree/master/examples/Data/BFM) to prepare BFM data. And move the generated files in Out/
  to data/Out/
 (Thanks for their opensource code. The codes in faceutil are mainly from face3d)
 
