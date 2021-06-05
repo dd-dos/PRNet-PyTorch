@@ -186,7 +186,6 @@ def saveTrainingSamples(gtposes, poses, metas, save_path):
         comparision = concatenate_compareKpt(pos, gtpos, img)
 
         cv2.imwrite(f"{save_path}/{idx}.jpg", comparision)
-    import ipdb; ipdb.set_trace(context=10)
 
 
 def showTriangularMesh(vertices: np.ndarray, triangles: np.ndarray):

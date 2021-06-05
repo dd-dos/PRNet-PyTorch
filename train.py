@@ -15,6 +15,9 @@ from utils.data import UVmap2Mesh
 from utils.dataset import FaceDataset
 from utils.visualize import saveTrainingSamples
 
+# from clearml import Task
+# task = Task.init(project_name="Facial-landmark", task_name="PRnet-train-300WLP-val-AFLW2000")
+
 logging.basicConfig()
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -25,12 +28,14 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else "cpu")
 
 def train(args):
     model = ResFCN256()
+
     train_set = FaceDataset(root=args.train_root)
+
     test_set = FaceDataset(root=args.test_root, aug=False)
 
     train_loader = DataLoader(dataset=train_set,
                               batch_size=args.batch_size,
-                              shuffle=True,
+                              shuffle=False,
                               num_workers=args.num_workers,
                               pin_memory=True)
 
@@ -44,7 +49,7 @@ def train(args):
     
     if args.pretrained:
         weight = torch.load(args.pretrained)
-        model = model.load_state_dict(weight)
+        model.load_state_dict(weight)
 
     model.to(DEVICE)
     model.train()
@@ -67,9 +72,11 @@ def train(args):
             loss.backward()
             optimizer.step()
 
+            logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
+
             if idx%100==99:
-                writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx)
-                writer.add_scalar('Train/Normalized-Mean-Square-Error', metric.item(), idx)
+                writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx+epoch*len(train_loader))
+                writer.add_scalar('Train/Normalized-Mean-Square-Error', metric.item(), idx+epoch*len(train_loader))
                 logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
 
         ############################# testing #############################
@@ -79,8 +86,8 @@ def train(args):
 def test(model, test_loader, save_path, visualize_path=None):
     global BEST_LOSS
     today = datetime.today().strftime('%Y-%m-%d')
-    save_path = os.path.join(save_path,today)
-    os.makedirs(save_path, exist_ok=True)
+    _save_path = os.path.join(save_path, today)
+    os.makedirs(_save_path, exist_ok=True)
 
     model.eval()
     logger.info("=> Testing phase.")
@@ -103,11 +110,11 @@ def test(model, test_loader, save_path, visualize_path=None):
         if test_loss <= BEST_LOSS:
             BEST_LOSS = test_loss
             logger.info(f"==> New bess loss: {test_loss}. Saving best model...")
-            torch.save(model.state_dict(), os.path.join(save_path,"best.pth"))
+            torch.save(model.state_dict(), os.path.join(_save_path,"best.pth"))
             logger.info(f"==> Done saving!")
         else:
             logging.info(f"==> Current loss {test_loss} - Best loss {BEST_LOSS}. Saving last model...")    
-            torch.save(model.state_dict(), os.path.join(save_path,"last.pth"))
+            torch.save(model.state_dict(), os.path.join(_save_path,"last.pth"))
             logger.info(f"==> Done saving!")
 
 

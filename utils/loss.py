@@ -4,8 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from skimage import io, transform
 
-from .data import FACE_MASK_MEAN_FIX_RATE, FACE_MASK_NP, UV_KPT
-from .dataloader import toTensor
+from .data import FACE_MASK_MEAN_FIX_RATE, FACE_MASK_NP, UV_KPT, toTensor
 
 weight_mask_np = io.imread('data/uv-data/uv_weight_mask.png').astype(float)
 weight_mask_np[weight_mask_np == 255] = 256

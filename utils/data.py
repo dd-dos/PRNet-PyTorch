@@ -1,13 +1,10 @@
 import math
 import os
-import sys
-import time
 from math import acos, asin, atan, atan2, cos, sin
 
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy.io as sio
 import skimage
+import torch
 from PIL import Image
 from skimage import io
 
@@ -32,6 +29,12 @@ def process_uv(uv_coordinates):
     uv_coordinates[:, 1] = uv_h - uv_coordinates[:, 1] - 1
     uv_coordinates = np.hstack((uv_coordinates, np.zeros((uv_coordinates.shape[0], 1))))  # add z
     return uv_coordinates
+
+
+def toTensor(image):
+    image = image.transpose((2, 0, 1))
+    image = torch.from_numpy(image)
+    return image
 
 
 def readUVKpt(uv_kpt_path):

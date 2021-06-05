@@ -3,17 +3,14 @@ import os
 import cv2
 import numpy as np
 import torch
+import random
 from PIL import Image
+from pathlib import Path
 from torch.utils.data import Dataset
 from utils.augmentation import rotateData
 
 from . import augmentation
-
-
-def toTensor(image):
-    image = image.transpose((2, 0, 1))
-    image = torch.from_numpy(image)
-    return image
+from .data import toTensor
 
 
 class FaceDataset(Dataset):
@@ -24,6 +21,8 @@ class FaceDataset(Dataset):
         self.aug = aug
 
     def __len__(self):
+        # return 4
+
         assert len(self.img_list) == len(self.uv_list)
         return len(self.img_list)
 
@@ -46,18 +45,17 @@ class FaceDataset(Dataset):
     def _get_data(self):
         img_list = []
         uv_list = []
+        
+        _root = Path(self.root)
+        for img_path in _root.glob("**/*_cropped.jpg"):
+            split_path = str(img_path).split("/")
+            
+            true_name = split_path[-2]
+            parent_dir = "/".join(split_path[:-1])
+            uv_path = os.path.join(parent_dir, true_name + '_cropped_uv_posmap.npy')
 
-        for root_dir, dirs, files in os.walk(self.root):
-            for dir_name in dirs:
-                image_name = dir_name
-                if not os.path.exists(root_dir + '/' + dir_name + '/' + image_name + '_cropped.jpg'):
-                    print('skip ', root_dir + '/' + dir_name)
-                    continue
-                img_path = root_dir + '/' + dir_name + '/' + image_name + '_cropped.jpg'
-                uv_path = root_dir + '/' + dir_name + '/' + image_name + '_cropped_uv_posmap.npy'
-                
-                img_list.append(img_path)
-                uv_list.append(uv_path)
+            img_list.append(img_path)
+            uv_list.append(uv_path)
 
         return img_list, uv_list
 
