@@ -24,7 +24,7 @@ I hope this re-implementation can help you.
 2. Download databases from [3DDFA](http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/main.htm). Put the raw dataset in data/images (e.g. 
 data/images/AFLW2000):
 - AFLW2000: `wget http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/Database/AFLW2000-3D.zip`.
-- 300WLP: create a shortcut from (300WLP)[https://drive.google.com/file/d/0B7OEHD3T4eCkVGs0TkhUWFN6N1k/view] to your Google Drive, then use rclone.
+- 300WLP: create a shortcut from [300WLP](https://drive.google.com/file/d/0B7OEHD3T4eCkVGs0TkhUWFN6N1k/view) to your Google Drive, then use rclone.
 
 3. (maybe) You have to compile Cython module before running `processor.py`: 
 - `cd utils/faceutil/mesh/cython`.
