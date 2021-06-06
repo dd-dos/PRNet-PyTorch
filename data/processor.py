@@ -16,7 +16,7 @@ from utils.data import bfm2Mesh, mesh2UVmap, renderMesh
 class DataProcessor:
     def __init__(self,
                  is_full_image=False, is_visualize=True, is_pt3d=False,
-                 bbox_extend_rate=1.5, marg_rate=0.1):
+                 bbox_extend_rate=1.5, marg_rate=0.1, self.zip=True):
 
         print('BFM model loaded')
 
