@@ -22,7 +22,11 @@ Please refer to [face3d](https://github.com/dd-dos/face3d/tree/master/examples/D
 (Thanks for their opensource code. The codes in faceutil are mainly from face3d)
 
 Download databases from [3DDFA](http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/main.htm). Put the raw dataset in data/images (e.g. 
-data/images/AFLW2000)
+data/images/AFLW2000).
+
+Compile Cython package before running `processor.py`: 
+- `cd utils/faceutil/mesh/cython`.
+- `python setup.py build_ext --inplace`.
 
 Run processor.py to generate UV position maps. I recommend you to use the following instructions:
 ```cmd

@@ -3,7 +3,7 @@ import numpy as np
 import scipy.io as sio
 from skimage import io, transform
 import skimage
-from faceutil import mesh
+from utils.faceutil import mesh
 import argparse
 import ast
 import copy
