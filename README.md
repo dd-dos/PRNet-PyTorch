@@ -17,18 +17,20 @@ I hope this re-implementation can help you.
     torchvision 0.3.0
     
 ## Getting started
-Please refer to [face3d](https://github.com/dd-dos/face3d/tree/master/examples/Data/BFM) to prepare BFM data. And move the generated files in Out/
+1. Please refer to [face3d](https://github.com/dd-dos/face3d/tree/master/examples/Data/BFM) to prepare BFM data. And move the generated files in Out/
  to data/Out/
-(Thanks for their opensource code. The codes in faceutil are mainly from face3d)
+**Editor note**: Simply run `dvc pull` if you are strong enough.
 
-Download databases from [3DDFA](http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/main.htm). Put the raw dataset in data/images (e.g. 
-data/images/AFLW2000).
+2. Download databases from [3DDFA](http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/main.htm). Put the raw dataset in data/images (e.g. 
+data/images/AFLW2000):
+- AFLW2000: `wget http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/Database/AFLW2000-3D.zip`.
+- 300WLP: create a shortcut from (300WLP)[https://drive.google.com/file/d/0B7OEHD3T4eCkVGs0TkhUWFN6N1k/view] to your Google Drive, then use rclone.
 
-Compile Cython package before running `processor.py`: 
+3. (maybe) You have to compile Cython module before running `processor.py`: 
 - `cd utils/faceutil/mesh/cython`.
 - `python setup.py build_ext --inplace`.
 
-Run processor.py to generate UV position maps. I recommend you to use the following instructions:
+4. Run processor.py to generate UV position maps. I recommend you to use the following instructions:
 ```cmd
 python processor.py -i=data/images/AFLW2000 -o=data/images/AFLW2000-crop -f=True -v=True --isOldKpt=True
 python processor.py -i=data/images/300W_LP -o=data/images/300W_LP-crop --thread=16
@@ -36,33 +38,13 @@ python processor.py -i=data/images/300W_LP -o=data/images/300W_LP-crop --thread=
 ```
 It takes about 2-4 hours depending on your working machine.
 
-Trian PRNet:
+5. Train PRNet (adjust argument if needed):
 ```cmd
-python torchrun.py -train=True -test=False --batchSize=16 -td=data/images/300W_LP-crop -vd=data/images/AFLW2000 --numWorker=1
+sh scripts/train.sh
 
 ```
-If you have more than 128 GB RAM, you can use
-```cmd
-python torchrun.py -train=True -test=False --batchSize=16 -td=data/images/300W_LP-crop -vd=data/images/AFLW2000 --isPreRead=True --numWorker=8
-```
-
-For multi-gpus, for example 4 gpus, you can set:
-```cmd
---gpu=4 --visibleDevice=0,1,2,3
-```
-
-
-Evaluation, use your own  model path, for example:
-```cmd
-python torchrun.py -train=False -test=True -pd=data/images/AFLW2000 --loadModelPath=savedmodel/temp_best_model/2019-11-18-12-34-19/best.pth
-
-```
-
-A pre-trained model is provided at [here](https://drive.google.com/file/d/1YwNPKrLQ8z2WJZd9PLibAK9WF6Eq7Yfy/view?usp=sharing)
-
 
 Result examples:
-
 
 ![Alt text](docs/0_init.jpg "optional title")
 ![Alt text](docs/0_kpt.jpg "optional title")
