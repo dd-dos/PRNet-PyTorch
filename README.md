@@ -18,7 +18,7 @@ I hope this re-implementation can help you.
     
 ## Getting started
 1. Please refer to [face3d](https://github.com/dd-dos/face3d/tree/master/examples/Data/BFM) to prepare BFM data. And move the generated files in Out/
- to data/Out/
+ to data/Out/  
 **Editor note**: Simply run `dvc pull` if you are strong enough.
 
 2. Download databases from [3DDFA](http://www.cbsr.ia.ac.cn/users/xiangyuzhu/projects/3DDFA/main.htm). Put the raw dataset in data/images (e.g. 
