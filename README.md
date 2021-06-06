@@ -28,7 +28,7 @@ data/images/AFLW2000):
 
 3. (maybe) You have to compile Cython module before running `processor.py`: 
 - `cd utils/faceutil/mesh/cython`.
-- `python setup.py build_ext --inplace`.
+- `python3 setup.py build_ext --inplace`.
 
 4. Run processor.py to generate UV position maps. I recommend you to use the following instructions:
 ```cmd
