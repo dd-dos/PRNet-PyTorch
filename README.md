@@ -44,6 +44,8 @@ sh scripts/train.sh
 
 ```
 
+6. Inference: In progress. Stay tuned.
+
 Result examples:
 
 ![Alt text](docs/0_init.jpg "optional title")
