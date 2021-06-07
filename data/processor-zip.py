@@ -233,6 +233,11 @@ def workerProcess(image_paths, output_dirs, worker_id, worker_conf):
 
         Path(img_path).unlink()
         Path(uv_path).unlink()
+    
+    afw_obj.close()
+    helen_obj.close()
+    ibug_obj.close()
+    lfpw_obj.close()
 
 
 def multiProcess(thread_conf):
