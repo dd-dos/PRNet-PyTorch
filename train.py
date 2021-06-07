@@ -13,10 +13,10 @@ from torch.utils.data import DataLoader
 from models.resfcn256 import ResFCN256
 from utils.data import UVmap2Mesh
 from utils.dataset import FaceDataset
-from utils.visualize import saveTrainingSamples
+from utils.visualize import logTrainingSamples
 
-# from clearml import Task
-# task = Task.init(project_name="Facial-landmark", task_name="PRnet-train-300WLP-val-AFLW2000")
+from clearml import Task
+task = Task.init(project_name="Facial-landmark", task_name="PRnet-train-300WLP-val-AFLW2000")
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -27,6 +27,7 @@ EPOCH = 0
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else "cpu")
 
 def train(args):
+    global EPOCH
     model = ResFCN256()
 
     train_set = FaceDataset(root=args.train_root)
@@ -54,6 +55,8 @@ def train(args):
     model.to(DEVICE)
     model.train()
 
+    test(model, test_loader, args.save_path)
+
     ############################# training #############################
     for epoch in range(10000):
         EPOCH = epoch
@@ -80,10 +83,10 @@ def train(args):
                 logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
 
         ############################# testing #############################
-        test(model, test_loader, args.save_path, args.visualize_path)
+        test(model, test_loader, args.save_path)
 
 
-def test(model, test_loader, save_path, visualize_path=None):
+def test(model, test_loader, save_path):
     global BEST_LOSS
     today = datetime.today().strftime('%Y-%m-%d')
     _save_path = os.path.join(save_path, today)
@@ -102,7 +105,7 @@ def test(model, test_loader, save_path, visualize_path=None):
             test_loss += torch.mean(metrics)
 
             if idx==0:
-                saveTrainingSamples(gtposes, poses, metas, visualize_path)
+                logTrainingSamples(gtposes, poses, metas, EPOCH, writer)
 
         test_loss /= len(test_loader)
         writer.add_scalar("Test/Normalized-Mean-Square-Error", test_loss, EPOCH)   
@@ -126,7 +129,6 @@ def opt():
     parser.add_argument('--test-size', type=int, default=64, help='test size')
     parser.add_argument('--save-path', type=str, required=True, help='model save path')
     parser.add_argument('--num-workers', type=int, default=8, help='number of workers to push data')
-    parser.add_argument('--visualize-path', type=str, help='path to save some samples for visualization')
     parser.add_argument('--pretrained', type=str, help='path to pretrained weight')
     
     args = parser.parse_args()

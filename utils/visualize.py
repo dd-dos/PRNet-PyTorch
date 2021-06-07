@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyrender
 import scipy.io as sio
+import torch
+import torchvision
 import tqdm
 import trimesh
 from mpl_toolkits.mplot3d import Axes3D
@@ -170,8 +172,7 @@ def concatenate_compareKpt(pos, gtpos, image):
     return concatenate_ploted
 
 
-def saveTrainingSamples(gtposes, poses, metas, save_path):
-    os.makedirs(save_path, exist_ok=True)
+def logTrainingSamples(gtposes, poses, metas, epoch, writer):
     for idx in range(poses.shape[0]):
         gtpos = gtposes[idx].squeeze().numpy().transpose(1,2,0)*280
         pos = poses[idx].squeeze().numpy().transpose(1,2,0)*280
@@ -184,8 +185,12 @@ def saveTrainingSamples(gtposes, poses, metas, save_path):
         img, _, _ = rotateData(img, dummy, specify_angle=rotate_angle)
 
         comparision = concatenate_compareKpt(pos, gtpos, img)
+        comparision = cv2.cvtColor(comparision, cv2.COLOR_BGR2RGB)
+        comparision = torch.tensor(comparision.transpose(2,0,1) / 255.0, 
+                                   dtype=torch.float32).unsqueeze(0)
 
-        cv2.imwrite(f"{save_path}/{idx}.jpg", comparision)
+        grid = torchvision.utils.make_grid(comparision)
+        writer.add_image(f'comparision-{idx}', grid, epoch)
 
 
 def showTriangularMesh(vertices: np.ndarray, triangles: np.ndarray):
