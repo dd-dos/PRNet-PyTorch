@@ -222,8 +222,8 @@ def workerProcess(image_paths, output_dirs, worker_id, worker_conf):
             afw_obj.write(img_path)
             afw_obj.write(uv_path)
         elif 'HELEN' in img_path:
-            helen_obj.writew(img_path)
-            helen_obj.writew(uv_path)
+            helen_obj.write(img_path)
+            helen_obj.write(uv_path)
         elif 'IBUG' in img_path:
             ibug_obj.write(img_path)
             ibug_obj.write(uv_path)
