@@ -67,7 +67,7 @@ class FaceDataset(Dataset):
         rotate_angle = 0
         if self.aug:
             if np.random.rand() > 0.5:
-                _img, _uv, rotate_angle = rotateData(_img, _uv, 90)
+                _img, _uv, rotate_angle = rotateData(_img, _uv, 180)
             _img, _uv = augmentation.prnAugment_torch(_img, _uv)
         
         for i in range(3):
