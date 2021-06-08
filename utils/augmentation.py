@@ -151,8 +151,8 @@ def prnAugment_torch(x, y, is_rotate=True):
         x = randomErase(x)
     if np.random.rand() > 0.5:
         x = channelScale(x)
-    # if np.random.rand() > 0.75:
-    #     x = gaussNoise(x)
+    if np.random.rand() > 0.75:
+        x = gaussNoise(x)
     return x, y
 
 
