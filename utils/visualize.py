@@ -22,7 +22,6 @@ from .faceutil import mesh
 end_list = np.array([17, 22, 27, 42, 48, 31, 36, 68], dtype=np.int32) - 1
 
 IMAGE_WIDTH = 256
-r = pyrender.OffscreenRenderer(IMAGE_WIDTH, IMAGE_WIDTH)
 scene = pyrender.Scene()
 
 
@@ -106,6 +105,8 @@ def renderLight(posmap, init_image=None, is_render=True):
     scene.add(camera, pose=camera_pose)
     light = pyrender.DirectionalLight(color=[1.0, 1.0, 1.0], intensity=8.0)
     scene.add(light, pose=camera_pose)
+
+    r = pyrender.OffscreenRenderer(IMAGE_WIDTH, IMAGE_WIDTH)
     color, depth = r.render(scene)
     if is_render:
         plt.imshow(color)
@@ -174,14 +175,15 @@ def concatenate_compareKpt(pos, gtpos, image):
 
 def logTrainingSamples(gtposes, poses, metas, epoch, writer):
     for idx in range(poses.shape[0]):
-        gtpos = gtposes[idx].squeeze().numpy().transpose(1,2,0)*280
-        pos = poses[idx].squeeze().numpy().transpose(1,2,0)*280
+        gtpos = gtposes[idx].cpu().squeeze().numpy().transpose(1,2,0)*280
+        pos = poses[idx].cpu().squeeze().numpy().transpose(1,2,0)*280
 
         img_path = metas['img_path'][idx]
         img = cv2.imread(img_path)
         rotate_angle = metas['rotate_angle'][idx]
 
         dummy = np.zeros((256,256,3))
+
         img, _, _ = rotateData(img, dummy, specify_angle=rotate_angle)
 
         comparision = concatenate_compareKpt(pos, gtpos, img)

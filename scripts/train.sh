@@ -4,4 +4,4 @@ python3 train.py \
 --batch-size 32 \
 --test-size 64 \
 --save-path "weights" \
---num-workers 8
+--num-workers 4

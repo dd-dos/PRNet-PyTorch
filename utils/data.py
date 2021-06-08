@@ -32,7 +32,7 @@ def process_uv(uv_coordinates):
 
 
 def toTensor(image):
-    image = image.transpose((2, 0, 1))
+    image = image.transpose((2, 0, 1)).astype(np.float32)
     image = torch.from_numpy(image)
     return image
 

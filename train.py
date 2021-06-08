@@ -55,7 +55,8 @@ def train(args):
     model.to(DEVICE)
     model.train()
 
-    test(model, test_loader, args.save_path)
+    # while True:
+    #     test(model, test_loader, args.save_path)
 
     ############################# training #############################
     for epoch in range(10000):
@@ -63,8 +64,8 @@ def train(args):
         logger.info("=> Training phase.")
         for idx, item in enumerate(train_loader):
             imgs, gtposes, _ = item
-            imgs.to(DEVICE)
-            gtposes.to(DEVICE)
+            imgs = imgs.to(DEVICE)
+            gtposes = gtposes.to(DEVICE)
 
             optimizer.zero_grad()
             losses, metrics, _ = model(imgs, gtposes)
@@ -74,8 +75,6 @@ def train(args):
 
             loss.backward()
             optimizer.step()
-
-            logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
 
             if idx%100==99:
                 writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx+epoch*len(train_loader))
@@ -98,8 +97,8 @@ def test(model, test_loader, save_path):
     with torch.no_grad():
         for idx, item in enumerate(test_loader):
             imgs, gtposes, metas = item
-            imgs.to(DEVICE)
-            gtposes.to(DEVICE)
+            imgs = imgs.to(DEVICE)
+            gtposes = gtposes.to(DEVICE)
 
             _, metrics, poses = model(imgs, gtposes)
             test_loss += torch.mean(metrics)

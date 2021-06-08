@@ -9,7 +9,6 @@ import cv2
 end_list = np.array([17, 22, 27, 42, 48, 31, 36, 68], dtype=np.int32) - 1
 
 IMAGE_WIDTH = 256
-r = pyrender.OffscreenRenderer(IMAGE_WIDTH, IMAGE_WIDTH)
 scene = pyrender.Scene()
 
 
@@ -93,6 +92,8 @@ def renderLight(posmap, init_image=None, is_render=True):
     scene.add(camera, pose=camera_pose)
     light = pyrender.DirectionalLight(color=[1.0, 1.0, 1.0], intensity=8.0)
     scene.add(light, pose=camera_pose)
+    
+    r = pyrender.OffscreenRenderer(IMAGE_WIDTH, IMAGE_WIDTH)
     color, depth = r.render(scene)
     if is_render:
         plt.imshow(color)
