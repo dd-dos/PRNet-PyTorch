@@ -1,7 +1,7 @@
 python3 train.py \
 --train-root "data/images/300W_LP-crop" \
 --test-root "data/images/AFLW2000-crop" \
---batch-size 32 \
+--batch-size 128 \
 --test-size 64 \
 --save-path "weights" \
---num-workers 4
+--num-workers 8
