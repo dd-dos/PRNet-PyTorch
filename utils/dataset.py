@@ -62,7 +62,6 @@ class FaceDataset(Dataset):
     
     def _preprocess(self, img, uv):
         img = (img/255.0).astype(np.float32)
-        uv = uv / 280.
         uv = uv.astype(np.float32)
 
         rotate_angle = 0
@@ -74,7 +73,8 @@ class FaceDataset(Dataset):
         for i in range(3):
             img[:, :, i] = (img[:, :, i] - img[:, :, i].mean()) / np.sqrt(img[:, :, i].var() + 0.001)
         
-        img = toTensor(img)
+        uv = uv / 280.
         uv = toTensor(uv)
+        img = toTensor(img)
 
         return img, uv, rotate_angle
