@@ -2,6 +2,7 @@ import math
 import os
 from math import acos, asin, atan, atan2, cos, sin
 
+import cv2
 import numpy as np
 import skimage
 import torch
@@ -20,6 +21,25 @@ DEFAULT_CROPPED_IMAGE_SHAPE = np.array([256, 256, 3])
 DEFAULT_UVMAP_SHAPE = np.array([256, 256, 3])
 FACE_MASK_NP = io.imread('data/uv-data/uv_face_mask.png') / 255.
 FACE_MASK_MEAN_FIX_RATE = (256 * 256) / np.sum(FACE_MASK_NP)
+
+
+def custom_crop(img, bbox, ratio=1/4):
+    if not isinstance(img, Image.Image):
+        img = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(img)
+
+    if isinstance(bbox, torch.Tensor):
+        bbox = bbox.cpu().detach().numpy()
+
+    bb_width, bb_height = bbox[2]-bbox[0], bbox[3]-bbox[1]
+    img_width, img_height = img.size
+
+    x1 = int(np.max([0, bbox[0]-bb_width*ratio]))
+    x2 = int(np.min([img_width, bbox[2]+bb_width*ratio]))
+    y1 = int(np.max([0, bbox[1]-bb_height*ratio]))
+    y2 = int(np.min([img_height, bbox[3]+bb_height*ratio]))
+
+    return img.crop((x1,y1,x2,y2))
 
 
 def process_uv(uv_coordinates):

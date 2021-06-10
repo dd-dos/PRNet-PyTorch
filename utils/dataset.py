@@ -30,7 +30,7 @@ class FaceDataset(Dataset):
         img_path = self.img_list[idx]
         uv_path = self.uv_list[idx]
         
-        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_RGB2BGR)
+        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
         uv =  np.load(uv_path, allow_pickle=True)
 
         img, uv, rotate_angle = self._preprocess(img, uv)
@@ -71,7 +71,7 @@ class FaceDataset(Dataset):
             _img, _uv = augmentation.prnAugment_torch(_img, _uv)
         
         for i in range(3):
-                _img[:, :, i] = (_img[:, :, i] - _img[:, :, i].mean()) / np.sqrt(_img[:, :, i].var() + 0.001)
+            _img[:, :, i] = (_img[:, :, i] - _img[:, :, i].mean()) / np.sqrt(_img[:, :, i].var() + 0.001)
         
         _img = toTensor(_img)
         _uv = _uv / 280.

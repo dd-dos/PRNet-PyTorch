@@ -172,41 +172,6 @@ class ResFCN256(nn.Module):
         return loss, metric, pos
 
 
-class TorchNet:
-    def __init__(self,
-                 gpu_num=1,
-                 visible_gpus='0',
-                 learning_rate=1e-4,
-                 feature_size=16
-                 ):
-        self.gpu_num = gpu_num
-        gpus = visible_gpus.split(',')
-        self.visible_devices = [int(i) for i in gpus]
-        self.learning_rate = learning_rate
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.feature_size=16
-        self.model = ResFCN256()
-
-        if self.gpu_num > 1:
-            self.model = nn.DataParallel(self.model, device_ids=self.visible_devices)
-        self.model.to(self.device)
-        # model.cuda()
-
-        self.optimizer = optim.Adam(params=self.model.parameters(), lr=self.learning_rate, weight_decay=0.0002)
-        scheduler_exp = optim.lr_scheduler.ExponentialLR(self.optimizer, 0.8)
-        self.scheduler = scheduler_exp
-        # self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=1, gamma=0.85)
-
-    def loadWeights(self, model_path):
-        if self.device.type == 'cpu':
-            self.model.load_state_dict(torch.load(model_path, map_location='cpu'))
-        else:
-            self.model.load_state_dict(torch.load(model_path))
-
-        self.model.to(self.device)
-
-
-
 if __name__=="__main__":
     model = ResFCN256(size=16)
     inp = torch.randn([1,3,256,256])
