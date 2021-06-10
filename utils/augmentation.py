@@ -6,11 +6,6 @@ from PIL import ImageEnhance, ImageOps, ImageFile, Image
 import cv2
 import random
 
-# import numba
-
-
-# sometimes = lambda aug: iaa.Sometimes(0.5, aug)
-
 
 def randomColor(image):
     """
@@ -18,12 +13,16 @@ def randomColor(image):
     PIL_image = Image.fromarray((image*255).astype(np.uint8))
     random_factor = np.random.randint(0, 31) / 10.
     color_image = ImageEnhance.Color(PIL_image).enhance(random_factor)  # 调整图像的饱和度
+    
     random_factor = np.random.randint(10, 21) / 10.
     brightness_image = ImageEnhance.Brightness(color_image).enhance(random_factor)  # 调整图像的亮度
+    
     random_factor = np.random.randint(10, 21) / 10.
     contrast_image = ImageEnhance.Contrast(brightness_image).enhance(random_factor)  # 调整图像对比度
+    
     random_factor = np.random.randint(0, 31) / 10.
     out = np.array(ImageEnhance.Sharpness(contrast_image).enhance(random_factor))
+    
     out = out/255.
     return out
 
@@ -143,6 +142,7 @@ def channelScale(x, min_rate=0.6, max_rate=1.4):
     for i in range(3):
         r = np.random.uniform(min_rate, max_rate)
         out[:, :, i] = out[:, :, i] * r
+    out = np.clip(out, 0, 1)
     return out
 
 
@@ -153,49 +153,77 @@ def cropRange(image, ratio=1/4):
     max_width_crop = int(width*ratio)
     max_height_crop = int(height*ratio)
 
-    x_index = random.randint(0, width - max_width_crop + 1)
-    y_index = random.randint(0, height - max_height_crop + 1)
+    x_max_index = width - max_width_crop 
+    y_max_index = height - max_height_crop 
 
     x_crop_length = random.randint(int(max_width_crop/2), max_width_crop)
     y_crop_length = random.randint(int(max_height_crop/2), max_height_crop)
 
-    rd = np.random.rand()
+    def cropWidth(img):
+        x_rd = np.random.rand()
+        if x_rd > 0.5:
+            img[0:x_crop_length, :, :] = 0.
+        else:
+            img[width-x_crop_length:, :, :] = 0.
 
+        return img
+
+    def cropHeight(img):
+        y_rd = np.random.rand()
+        if y_rd > 0.5:
+            img[:, 0:y_crop_length, :] = 0.
+        else:
+            img[:, height-y_crop_length:, :] = 0.
+
+        return img
+
+    rd = np.random.rand()
     if 0.35 > rd >= 0:
-        out[x_index:x_index+x_crop_length, :, :] = 0.
-    if 0.7 > rd >= 0.35:
-        out[:, y_index:y_index+y_crop_length, :] = 0.
+        out = cropWidth(out)
+    elif 0.7 > rd >= 0.35:
+        out = cropHeight(out)
     else:
-        out[x_index:x_index+x_crop_length, :, :] = 0.
-        out[:, y_index:y_index+y_crop_length, :] = 0.
+        out = cropWidth(out)
+        out = cropHeight(out)
 
     return out
 
 
-def prnAugment_torch(x, y, is_rotate=True):
+def prnAugment_torch(x, y):
     out = x.copy()
-    if np.random.rand() > 0.2:
+    if np.random.rand() > 0.3:
         if np.random.rand() > 0.3:
             rd = np.random.rand()
             if 0.4 > rd >= 0:
                 out = randomErase(out)
             elif 0.8 > rd >= 0.4:
-                out = cropRange(out)
+                out = cropRange(out, ratio=1/6)
 
         if np.random.rand() > 0.6:
             out = channelScale(out)
 
         if np.random.rand() > 0.6:
-            out = gaussNoise(out)
+            out = randomColor(out)
 
         if np.random.rand() > 0.6:
-            out = randomColor(out)
+            out = gaussNoise(out)
 
     # from PIL import Image
     # Image.fromarray((out*255).astype(np.uint8)).show()
     # import ipdb; ipdb.set_trace(context=10)
 
     return out, y
+
+
+def test_full_augment(img):
+    out = img.copy()
+    out = cropRange(out, ratio=1/5)
+    out = channelScale(out)
+    out = randomColor(out)
+    out = gaussNoise(out)
+
+    return out
+
 
 
 if __name__ == '__main__':
