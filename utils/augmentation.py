@@ -4,7 +4,7 @@ import math
 import copy
 from PIL import ImageEnhance, ImageOps, ImageFile, Image
 import cv2
-
+import random
 
 # import numba
 
@@ -15,7 +15,7 @@ import cv2
 def randomColor(image):
     """
     """
-    PIL_image = Image.fromarray((image * 255.).astype(np.uint8))
+    PIL_image = Image.fromarray((image*255).astype(np.uint8))
     random_factor = np.random.randint(0, 31) / 10.
     color_image = ImageEnhance.Color(PIL_image).enhance(random_factor)  # 调整图像的饱和度
     random_factor = np.random.randint(10, 21) / 10.
@@ -24,7 +24,7 @@ def randomColor(image):
     contrast_image = ImageEnhance.Contrast(brightness_image).enhance(random_factor)  # 调整图像对比度
     random_factor = np.random.randint(0, 31) / 10.
     out = np.array(ImageEnhance.Sharpness(contrast_image).enhance(random_factor))
-    out = out / 255.
+    out = out/255.
     return out
 
 
@@ -146,20 +146,56 @@ def channelScale(x, min_rate=0.6, max_rate=1.4):
     return out
 
 
+def cropRange(image, ratio=1/4):
+    out = image.copy()
+    width, height, _ = image.shape
+
+    max_width_crop = int(width*ratio)
+    max_height_crop = int(height*ratio)
+
+    x_index = random.randint(0, width - max_width_crop + 1)
+    y_index = random.randint(0, height - max_height_crop + 1)
+
+    x_crop_length = random.randint(int(max_width_crop/2), max_width_crop)
+    y_crop_length = random.randint(int(max_height_crop/2), max_height_crop)
+
+    rd = np.random.rand()
+
+    if 0.35 > rd >= 0:
+        out[x_index:x_index+x_crop_length, :, :] = 0.
+    if 0.7 > rd >= 0.35:
+        out[:, y_index:y_index+y_crop_length, :] = 0.
+    else:
+        out[x_index:x_index+x_crop_length, :, :] = 0.
+        out[:, y_index:y_index+y_crop_length, :] = 0.
+
+    return out
+
+
 def prnAugment_torch(x, y, is_rotate=True):
-    if np.random.rand() > 0.75:
-        x = randomErase(x)
-    if np.random.rand() > 0.5:
-        x = channelScale(x)
-    if np.random.rand() > 0.75:
-        x = gaussNoise(x)
-    return x, y
+    out = x.copy()
+    if np.random.rand() > 0.2:
+        if np.random.rand() > 0.3:
+            rd = np.random.rand()
+            if 0.4 > rd >= 0:
+                out = randomErase(out)
+            elif 0.8 > rd >= 0.4:
+                out = cropRange(out)
 
+        if np.random.rand() > 0.6:
+            out = channelScale(out)
 
-# def prnAugment_torch(x, y, is_rotate=True):
-#     if np.random.rand() > 0.5:
-#         x = channelScale(x)
-#     return x, y
+        if np.random.rand() > 0.6:
+            out = gaussNoise(out)
+
+        if np.random.rand() > 0.6:
+            out = randomColor(out)
+
+    # from PIL import Image
+    # Image.fromarray((out*255).astype(np.uint8)).show()
+    # import ipdb; ipdb.set_trace(context=10)
+
+    return out, y
 
 
 if __name__ == '__main__':

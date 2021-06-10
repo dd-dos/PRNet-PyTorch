@@ -61,20 +61,20 @@ class FaceDataset(Dataset):
 
     
     def _preprocess(self, img, uv):
-        _img = (img/255.0).astype(np.float32)
-        _uv = uv.astype(np.float32)
+        img = (img/255.0).astype(np.float32)
+        uv = uv / 280.
+        uv = uv.astype(np.float32)
 
         rotate_angle = 0
         if self.aug:
-            if np.random.rand() > 0.5:
-                _img, _uv, rotate_angle = rotateData(_img, _uv, 180)
-            _img, _uv = augmentation.prnAugment_torch(_img, _uv)
-        
-        for i in range(3):
-            _img[:, :, i] = (_img[:, :, i] - _img[:, :, i].mean()) / np.sqrt(_img[:, :, i].var() + 0.001)
-        
-        _img = toTensor(_img)
-        _uv = _uv / 280.
-        _uv = toTensor(_uv)
+            img, uv = augmentation.prnAugment_torch(img, uv)
+            if np.random.rand() > 0.4:
+                img, uv, rotate_angle = rotateData(img, uv, 180)
 
-        return _img, _uv, rotate_angle
+        for i in range(3):
+            img[:, :, i] = (img[:, :, i] - img[:, :, i].mean()) / np.sqrt(img[:, :, i].var() + 0.001)
+        
+        img = toTensor(img)
+        uv = toTensor(uv)
+
+        return img, uv, rotate_angle
