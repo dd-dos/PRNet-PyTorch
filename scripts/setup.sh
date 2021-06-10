@@ -1,21 +1,17 @@
-mkdir data/images
-mkdir data/images/300WLP
-cd data/images
-
 rclone copy gran:gran/training_data/HELEN.zip . -v
-unzip HELEN.zip -d 300WLP
+unzip HELEN.zip 
 rm HELEN.zip
 
 rclone copy gran:gran/training_data/LFPW.zip . -v
-unzip LFPW.zip -d 300WLP
+unzip LFPW.zip 
 rm LFPW.zip
 
 rclone copy gran:gran/training_data/AFW.zip . -v
-unzip AFW.zip -d 300WLP
+unzip AFW.zip 
 rm AFW.zip
 
 rclone copy gran:gran/training_data/IBUG.zip . -v
-unzip IBUG.zip -d 300WLP
+unzip IBUG.zip
 rm IBUG.zip
 
 rclone copy gran:gran/training_data/AFLW2000.zip . -v
