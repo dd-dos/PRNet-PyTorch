@@ -4,4 +4,5 @@ python3 train.py \
 --batch-size 128 \
 --test-size 64 \
 --save-path "weights" \
---num-workers 8
+--num-workers 8 \
+--pretrained "weights/2021-06-08/best.pth"
