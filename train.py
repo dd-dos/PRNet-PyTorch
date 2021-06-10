@@ -49,6 +49,7 @@ def train(args):
     optimizer = Adam(params=model.parameters(), lr=1e-4)
     
     if args.pretrained:
+        logging.info(f"=> Loading pretrained model from {args.pretrained}...")
         weight = torch.load(args.pretrained)
         model.load_state_dict(weight)
 
