@@ -17,3 +17,8 @@ rm IBUG.zip
 rclone copy gran:gran/training_data/AFLW2000.zip . -v
 unzip AFLW2000.zip
 rm AFLW2000.zip
+
+pip3 install -r requirements.txt
+pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
+clearml-init
+dvc pull
