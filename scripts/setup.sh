@@ -20,5 +20,9 @@ rm AFLW2000.zip
 
 pip3 install -r requirements.txt
 pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
+
+cd utils/faceutil/mesh/cython && python3 setup.py build_ext --inplace
+cd ~/PRNet-PyTorch
+
 clearml-init
 dvc pull
