@@ -136,11 +136,11 @@ def plot_kpt(image, kpt, is_render=True, color_rate=0):
     kpt = np.round(kpt).astype(np.int32)
     for i in range(kpt.shape[0]):
         st = kpt[i, :2]
-        image = cv2.circle(image, (st[0], st[1]), 1, (0 + color_rate, 0, 255 - color_rate), 2)
+        image = cv2.circle(image, (st[0], st[1]), 1, (0, 255, 0), 2)
         if i in end_list:
             continue
         ed = kpt[i + 1, :2]
-        image = cv2.line(image, (st[0], st[1]), (ed[0], ed[1]), (0 + color_rate, 0, 255 - color_rate), 1)
+        image = cv2.line(image, (st[0], st[1]), (ed[0], ed[1]), (0, 255, 0), 1)
     if is_render:
         showImage(image)
     return image
