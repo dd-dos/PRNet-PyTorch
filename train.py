@@ -79,7 +79,7 @@ def train(args):
 
             if idx%100==99:
                 metas['tensor_imgs'] = imgs.cpu().numpy()
-                logTrainingSamples(gtposes, poses, metas, 'TRAINING STUFF', writer)
+                logTrainingSamples(gtposes, poses, metas, idx, writer)
                 writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx+epoch*len(train_loader))
                 writer.add_scalar('Train/Normalized-Mean-Square-Error', metric.item(), idx+epoch*len(train_loader))
                 logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
