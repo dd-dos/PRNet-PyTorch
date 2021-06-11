@@ -64,12 +64,12 @@ def train(args):
         EPOCH = epoch
         logger.info("=> Training phase.")
         for idx, item in enumerate(train_loader):
-            imgs, gtposes, _ = item
+            imgs, gtposes, metas = item
             imgs = imgs.to(DEVICE)
             gtposes = gtposes.to(DEVICE)
 
             optimizer.zero_grad()
-            losses, metrics, _ = model(imgs, gtposes)
+            losses, metrics, poses = model(imgs, gtposes)
 
             loss = torch.mean(losses)
             metric = torch.mean(metrics)
@@ -78,6 +78,8 @@ def train(args):
             optimizer.step()
 
             if idx%100==99:
+                metas['tensor_imgs'] = imgs.cpu().numpy()
+                logTrainingSamples(gtposes, poses, metas, 'TRAINING STUFF', writer)
                 writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx+epoch*len(train_loader))
                 writer.add_scalar('Train/Normalized-Mean-Square-Error', metric.item(), idx+epoch*len(train_loader))
                 logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
