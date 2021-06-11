@@ -78,7 +78,6 @@ def train(args):
             optimizer.step()
 
             if idx%100==99:
-                metas['tensor_imgs'] = imgs.cpu().numpy()
                 logTrainingSamples(gtposes, poses, metas, idx, writer)
                 writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx+epoch*len(train_loader))
                 writer.add_scalar('Train/Normalized-Mean-Square-Error', metric.item(), idx+epoch*len(train_loader))

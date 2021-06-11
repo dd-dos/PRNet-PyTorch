@@ -174,21 +174,15 @@ def concatenate_compareKpt(pos, gtpos, image):
 
 @torch.no_grad()
 def logTrainingSamples(gtposes, poses, metas, epoch, writer):
-    if metas['tensor_imgs'].any():
-        tensor_imgs = metas['tensor_imgs']
-
     for idx in range(poses.shape[0]):
         gtpos = gtposes[idx].cpu().squeeze().numpy().transpose(1,2,0)*280
         pos = poses[idx].cpu().squeeze().numpy().transpose(1,2,0)*280
 
-        if tensor_imgs.any():
-            img = tensor_imgs[idx].squeeze().transpose(1,2,0)*255
-        else:
-            img_path = metas['img_path'][idx]
-            img = cv2.imread(img_path)
-            rotate_angle = metas['rotate_angle'][idx]
-            dummy = np.zeros((256,256,3))
-            img, _, _ = rotateData(img, dummy, specify_angle=rotate_angle)
+        img_path = metas['img_path'][idx]
+        img = cv2.imread(img_path)
+        rotate_angle = metas['rotate_angle'][idx]
+        dummy = np.zeros((256,256,3))
+        img, _, _ = rotateData(img, dummy, specify_angle=rotate_angle)
 
         comparision = concatenate_compareKpt(pos, gtpos, img)
         comparision = cv2.cvtColor(comparision, cv2.COLOR_BGR2RGB)
@@ -196,7 +190,11 @@ def logTrainingSamples(gtposes, poses, metas, epoch, writer):
                                    dtype=torch.float32).unsqueeze(0)
 
         grid = torchvision.utils.make_grid(comparision)
-        writer.add_image(f'comparision-{idx}', grid, epoch)
+        if '300' in img_path:
+            writer.add_image(f'comparision-train-{idx}', grid, epoch)
+        else:
+            writer.add_image(f'comparision-test-{idx}', grid, epoch)
+
 
 
 def showTriangularMesh(vertices: np.ndarray, triangles: np.ndarray):
