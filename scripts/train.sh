@@ -5,4 +5,4 @@ python3 train.py \
 --test-size 128 \
 --save-path "weights" \
 --num-workers 8 \
---pretrained "weights/2021-06-08/best.pth"
+--pretrained "weights/2021-06-11/best.pth"
