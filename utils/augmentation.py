@@ -202,9 +202,6 @@ def prnAugment_torch(x, y):
         if np.random.rand() > 0.75:
             out = channelScale(out)
 
-        if np.random.rand() > 0.75:
-            out = randomColor(out)
-
         if np.random.rand() > 0.6:
             out = gaussNoise(out)
 
