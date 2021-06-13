@@ -78,7 +78,7 @@ def train(args):
             optimizer.step()
 
             if idx%100==99:
-                logTrainingSamples(gtposes, poses, metas, idx, writer)
+                logTrainingSamples(gtposes, poses, metas, 10000, writer)
                 writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx+epoch*len(train_loader))
                 writer.add_scalar('Train/Normalized-Mean-Square-Error', metric.item(), idx+epoch*len(train_loader))
                 logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
