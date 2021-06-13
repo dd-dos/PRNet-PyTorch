@@ -199,10 +199,10 @@ def prnAugment_torch(x, y):
             elif 0.8 > rd >= 0.4:
                 out = cropRange(out, ratio=1/6)
 
-        if np.random.rand() > 0.75:
+        if np.random.rand() > 0.5:
             out = channelScale(out)
 
-        if np.random.rand() > 0.6:
+        if np.random.rand() > 0.75:
             out = gaussNoise(out)
 
     # from PIL import Image

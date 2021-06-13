@@ -46,7 +46,7 @@ def train(args):
                              num_workers=args.num_workers,
                              pin_memory=True)
 
-    optimizer = Adam(params=model.parameters(), lr=1e-4)
+    optimizer = Adam(params=model.parameters(), lr=1e-4)    
     
     if args.pretrained:
         logging.info(f"=> Loading pretrained model {args.pretrained}.")
@@ -78,7 +78,7 @@ def train(args):
             optimizer.step()
 
             if idx%100==99:
-                logTrainingSamples(gtposes, poses, metas, 10000, writer)
+                logTrainingSamples(gtposes, poses, metas, 666, writer)
                 writer.add_scalar('Train/Foreface-Weighted-Root-Square-Error', loss.item(), idx+epoch*len(train_loader))
                 writer.add_scalar('Train/Normalized-Mean-Square-Error', metric.item(), idx+epoch*len(train_loader))
                 logger.info(f"==> Epoch {epoch} - Current FWRSE: {loss.item()} - Current NME: {metric.item()}")
