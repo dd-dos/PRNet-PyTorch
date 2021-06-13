@@ -13,3 +13,4 @@ data/face3d
 *.pt
 draft.py
 scripts/foo.sh
+foo-train.py
