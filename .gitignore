@@ -14,3 +14,4 @@ data/face3d
 draft.py
 scripts/foo-train.sh
 foo-train.py
+*.avi

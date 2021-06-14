@@ -1,7 +1,6 @@
 import argparse
 import logging
 import time
-
 import cv2
 import torch
 import torchvision
@@ -25,6 +24,14 @@ def video_infer(args):
                             10, size)
     else:
         cap = cv2.VideoCapture(0)
+
+        if args.save:
+            frame_width = int(cap.get(3))
+            frame_height = int(cap.get(4))
+            size = (frame_width, frame_height)
+            out = cv2.VideoWriter('cam-inference.avi', 
+                                cv2.VideoWriter_fourcc(*'MJPG'),
+                                10, size)
     
     model = FacePatternModel(args.model_path)
     face_detector = torch.jit.load(args.face_detector_path) 
@@ -38,7 +45,9 @@ def video_infer(args):
         if not ret:
             break
         
-        # frame = cv2.flip(frame, 0)
+        if args.flip:
+            frame = cv2.flip(frame, 0)
+
         key = cv2.waitKey(1) & 0xFF
 
         time_0 = time.time()
@@ -52,6 +61,9 @@ def video_infer(args):
         if args.video_path is not None:
             result.write(frame)
 
+        if args.save:
+            out.write(frame)
+
         logging.info("reference time: {}".format(time.time()-time_0))
         print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
 
@@ -63,6 +75,10 @@ def video_infer(args):
     cap.release()
     if args.video_path is not None:
         result.release()
+        print("The video was successfully saved")
+
+    if args.save:
+        out.release()
         print("The video was successfully saved")
 
     cv2.destroyAllWindows()
@@ -92,6 +108,10 @@ if __name__=="__main__":
     P.add_argument('--face-detector-path', type=str, required=True, help='path to retinaface detector to use')
     P.add_argument('--model-path', type=str, required=True, help='path to landmarks model')
     P.add_argument('--video-path', type=str, help='path to video for inference')
+    P.add_argument('--flip', action='store_true', help='flip input frame')
+    P.add_argument('--save', action='store_true', help='save inference video')
+
+
     args = P.parse_args()
     video_infer(args)
 
