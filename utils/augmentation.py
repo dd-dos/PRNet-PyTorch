@@ -216,7 +216,6 @@ def test_full_augment(img):
     out = img.copy()
     out = cropRange(out, ratio=1/5)
     out = channelScale(out)
-    out = randomColor(out)
     out = gaussNoise(out)
 
     return out
