@@ -1,15 +1,11 @@
-import argparse
 import logging
-import os
-import time
 
 import cv2
-import models
 import numpy as np
 import torch
+from mlchain.decorators import except_serving
 from models.resfcn256 import ResFCN256
-from utils.data import custom_crop, getLandmark, toTensor
-from utils.visualize import demoKpt
+from utils.data import getLandmark, toTensor
 
 logging.getLogger().setLevel(logging.INFO)
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else "cpu")
@@ -77,6 +73,7 @@ class FacePatternModel:
 
         return img
 
+    @except_serving
     def pre_process_single_img(self, img: np.ndarray):
         # Resize
         try:
@@ -95,6 +92,7 @@ class FacePatternModel:
 
         return img
 
+    @except_serving
     def pre_process_batch(self, imgs: list):
         _imgs = [self.pre_process_single_img(img) for img in imgs]
 
