@@ -178,18 +178,20 @@ def logTrainingSamples(gtposes, poses, metas, epoch, writer):
         gtpos = gtposes[idx].cpu().squeeze().numpy().transpose(1,2,0)*280
         pos = poses[idx].cpu().squeeze().numpy().transpose(1,2,0)*280
 
-        img_path = metas['img_path'][idx]
-        img = cv2.imread(img_path)
-        rotate_angle = metas['rotate_angle'][idx]
-        dummy = np.zeros((256,256,3))
-        img, _, _ = rotateData(img, dummy, specify_angle=rotate_angle)
+        # img = cv2.imread(img_path)
+        img = (metas['pre_normalized_img'][idx]*255).cpu().numpy().astype(np.uint8)
+        # rotate_angle = metas['rotate_angle'][idx]
+        # dummy = np.zeros((256,256,3))
+        # img, _, _ = rotateData(img, dummy, specify_angle=rotate_angle)
 
         comparision = concatenate_compareKpt(pos, gtpos, img)
         comparision = cv2.cvtColor(comparision, cv2.COLOR_BGR2RGB)
         comparision = torch.tensor(comparision.transpose(2,0,1) / 255.0, 
                                    dtype=torch.float32).unsqueeze(0)
 
+
         grid = torchvision.utils.make_grid(comparision)
+        img_path = metas['img_path'][idx]
         if '300' in img_path:
             writer.add_image(f'comparision-train-{idx}', grid, epoch)
         else:

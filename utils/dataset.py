@@ -33,11 +33,12 @@ class FaceDataset(Dataset):
         img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
         uv =  np.load(uv_path, allow_pickle=True)
 
-        img, uv, rotate_angle = self._preprocess(img, uv)
+        img, uv, rotate_angle, pre_normalized_img = self._preprocess(img, uv)
 
         meta = {
             'img_path': self.img_list[idx],
-            'rotate_angle': rotate_angle
+            'rotate_angle': rotate_angle,
+            'pre_normalized_img': pre_normalized_img
         }
 
         return img, uv, meta
@@ -67,9 +68,11 @@ class FaceDataset(Dataset):
         rotate_angle = 0
         if self.aug:
             img, uv = augmentation.prnAugment_torch(img, uv)
-            if np.random.rand() > 0.4:
+            # img = augmentation.test_full_augment(img)
+            if np.random.rand() > 0.5:
                 img, uv, rotate_angle = rotateData(img, uv, 180)
 
+        pre_normalized_img = img.copy()
         for i in range(3):
             img[:, :, i] = (img[:, :, i] - img[:, :, i].mean()) / np.sqrt(img[:, :, i].var() + 0.001)
         
@@ -77,4 +80,4 @@ class FaceDataset(Dataset):
         uv = toTensor(uv)
         img = toTensor(img)
 
-        return img, uv, rotate_angle
+        return img, uv, rotate_angle, pre_normalized_img
