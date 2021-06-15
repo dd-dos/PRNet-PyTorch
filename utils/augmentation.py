@@ -221,7 +221,6 @@ def test_full_augment(img):
     return out
 
 
-
 if __name__ == '__main__':
     import time
     from skimage import io
