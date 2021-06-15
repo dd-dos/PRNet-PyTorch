@@ -38,7 +38,8 @@ def video_infer(args):
         if not ret:
             break
         
-        # frame = cv2.flip(frame, 0)
+        if args.flip:
+            frame = cv2.flip(frame, 0)
         key = cv2.waitKey(1) & 0xFF
 
         time_0 = time.time()
@@ -92,6 +93,7 @@ if __name__=="__main__":
     P.add_argument('--face-detector-path', type=str, required=True, help='path to retinaface detector to use')
     P.add_argument('--model-path', type=str, required=True, help='path to landmarks model')
     P.add_argument('--video-path', type=str, help='path to video for inference')
+    P.add_argument('--flip', action='store_true', help='flip input frame')
     args = P.parse_args()
     video_infer(args)
 

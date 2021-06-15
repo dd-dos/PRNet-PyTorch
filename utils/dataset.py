@@ -30,7 +30,7 @@ class FaceDataset(Dataset):
         img_path = self.img_list[idx]
         uv_path = self.uv_list[idx]
         
-        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
+        img = cv2.imread(img_path)
         uv =  np.load(uv_path, allow_pickle=True)
 
         img, uv, rotate_angle, pre_normalized_img = self._preprocess(img, uv)
