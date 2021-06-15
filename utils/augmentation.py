@@ -1,11 +1,11 @@
+from skimage.io import manage_plugins
+from inference import cam_cap
 import numpy as np
-from skimage import io, transform
 import math
-import copy
-from PIL import ImageEnhance, ImageOps, ImageFile, Image
+from PIL import ImageEnhance, Image
 import cv2
 import random
-
+import imgaug.augmenters as iaa
 
 def randomColor(image):
     """
@@ -220,6 +220,23 @@ def test_full_augment(img):
 
     return out
 
+
+def create_stretched_data(img:np.ndarray, position: np.ndarray):
+    aug = iaa.Affine(scale={"x": 0.4})
+    
+    mask = position[:, :-1].astype(np.uint8)
+    canvas = np.zeros(img.shape, dtype=np.float32)
+    for pt in mask:
+        canvas[pt[0], pt[1]] = (255., 255., 255.)
+    
+    # canvas = canvas.astype(np.uint8)
+
+    augmented_canvas = aug(image=canvas)
+    augmented_pos = np.where(augmented_canvas==(255., 255., 255.))
+
+    augmented_img = aug(image=img)
+
+    return augmented_img, augmented_pos
 
 
 if __name__ == '__main__':
