@@ -16,3 +16,5 @@ scripts/foo-train.sh
 foo-train.py
 *.avi
 data/QUA_TBDT_MOIRE
+data/mặt_bóp
+*.mp4
