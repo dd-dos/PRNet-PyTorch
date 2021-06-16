@@ -66,7 +66,7 @@ class FaceDataset(Dataset):
         uv = toTensor(uv)
         img = toTensor(img)
 
-        return img, uv, rotate_angle, pre_normalized_img
+        return img, uv, rotate_angle, np.array(pre_normalized_img)
     
     def _normalize(self, img, uv):
         img = (img/255.0).astype(np.float32)
