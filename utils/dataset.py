@@ -54,6 +54,7 @@ class FaceDataset(Dataset):
         return img_list, uv_list
 
     def _preprocess(self, img, uv):
+        rotate_angle = 0
         if self.aug:
             img, uv, rotate_angle = augmentation.prnAugment_torch(img, uv)
 
