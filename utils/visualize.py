@@ -179,7 +179,7 @@ def logTrainingSamples(gtposes, poses, metas, epoch, writer):
         pos = poses[idx].cpu().squeeze().numpy().transpose(1,2,0)*280
 
         # img = cv2.imread(img_path)
-        img = (metas['pre_normalized_img'][idx]*255).cpu().numpy().astype(np.uint8)
+        img = (metas['pre_normalized_img'][idx]).cpu().numpy().astype(np.uint8)
         # rotate_angle = metas['rotate_angle'][idx]
         # dummy = np.zeros((256,256,3))
         # img, _, _ = rotateData(img, dummy, specify_angle=rotate_angle)
