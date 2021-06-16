@@ -243,11 +243,11 @@ def cropRange(image, ratio=1/4):
 
 def prnAugment_torch(x, y):
     out = x.copy().astype(np.float64)
-    # if np.random.rand() > 0:
+    
     rd = np.random.rand()
-    if 0.4 > rd >= 0:
+    if 0.3 > rd >= 0:
         out = randomErase(out)
-    elif 0.8 > rd >= 0.4:
+    elif 0.6 > rd >= 0.3:
         out = cropRange(out, ratio=1/4)
 
     out = out.astype(np.uint8)
