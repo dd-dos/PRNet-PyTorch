@@ -1,11 +1,63 @@
-from skimage.io import manage_plugins
-from inference import cam_cap
 import numpy as np
 import math
 from PIL import ImageEnhance, Image
 import cv2
 import random
 import imgaug.augmenters as iaa
+from numpy.lib.type_check import imag
+
+seq = iaa.Sequential([
+    iaa.Sometimes(0.1, iaa.MotionBlur(k=(5, 13), angle=(-45, 45))),
+
+    # Low resolution
+    iaa.Sometimes(0.15, 	
+        iaa.OneOf([	
+            iaa.imgcorruptlike.Pixelate(severity=(2, 4)),	
+            iaa.imgcorruptlike.JpegCompression(severity=(1, 2)),	
+            iaa.KMeansColorQuantization(n_colors=(230, 256)),	
+            iaa.UniformColorQuantization(n_colors=(30, 256)),	
+        ])	
+    ),
+
+    # Low light condition
+    iaa.Sometimes(0.18, 	
+        iaa.Sequential([	
+            iaa.JpegCompression(compression=(50, 90)),	
+            iaa.OneOf([	
+                iaa.AdditivePoissonNoise((1, 10), per_channel=True),	
+                iaa.AdditivePoissonNoise((1, 5)),	
+                iaa.AdditiveLaplaceNoise(scale=(0.005*255, 0.02*255)),	
+                iaa.AdditiveLaplaceNoise(scale=(0.005*255, 0.02*255), per_channel=True)	
+            ])	
+        ])	
+    ),
+
+    # Heavy blur
+    iaa.Sometimes(0.1, iaa.MotionBlur(k=(5, 13), angle=(-45, 45))),
+    
+    iaa.Sometimes(0.05,
+        iaa.OneOf([
+            iaa.GaussianBlur((4.0, 11.0)),
+            iaa.AverageBlur(k=(7, 13)),
+            iaa.MedianBlur(k=(7, 13)),
+        ]),
+    ),
+
+    # iaa.Sometimes(0.1, iaa.PerspectiveTransform(scale=(0.01, 0.15), keep_size=True)),
+    iaa.Sometimes(0.1, iaa.ChangeColorTemperature((5000, 12000))),
+    iaa.Sometimes(0.1, iaa.CoarseDropout(0.02, size_percent=0.01, per_channel=1)),
+
+    iaa.Sometimes(0.1, 
+        iaa.OneOf([
+            iaa.LinearContrast((1.25, 2.5)),
+            iaa.LogContrast(gain=(0.5, 2)),
+            iaa.SigmoidContrast(gain=7, cutoff=(0.1, 0.9))#, per_channel=True)
+        ])
+    ),
+    iaa.Sometimes(0.2, iaa.Multiply((0.75, 1.25))),
+    
+    iaa.Sometimes(0.5, iaa.ChannelShuffle(p=1)),
+])
 
 def randomColor(image):
     """
@@ -190,41 +242,47 @@ def cropRange(image, ratio=1/4):
 
 
 def prnAugment_torch(x, y):
-    out = x.copy()
-    if np.random.rand() > 0.3:
-        if np.random.rand() > 0.3:
-            rd = np.random.rand()
-            if 0.4 > rd >= 0:
-                out = randomErase(out)
-            elif 0.8 > rd >= 0.4:
-                out = cropRange(out, ratio=1/6)
+    out = x.copy().astype(np.float64)
+    # if np.random.rand() > 0:
+    rd = np.random.rand()
+    if 0.4 > rd >= 0:
+        out = randomErase(out)
+    elif 0.8 > rd >= 0.4:
+        out = cropRange(out, ratio=1/4)
 
-        if np.random.rand() > 0.5:
-            out = channelScale(out)
-
-        if np.random.rand() > 0.75:
-            out = gaussNoise(out)
+    out = out.astype(np.uint8)
+    out = seq(image=out)
+    
+    rotate_angle = 0
+    if np.random.rand() > 0.5:
+        out, y, rotate_angle = rotateData(out, y, 180)
 
     # from PIL import Image
     # Image.fromarray((out*255).astype(np.uint8)).show()
     # import ipdb; ipdb.set_trace(context=10)
 
-    return out, y
+    return out, y, rotate_angle
 
 
 def test_full_augment(img):
     out = img.copy()
-    out = cropRange(out, ratio=1/5)
-    out = channelScale(out)
-    out = gaussNoise(out)
+    out = cropRange(out, ratio=1/4)
+    # out = channelScale(out)
+    out = randomErase(out)
+    # out = (out*255).astype(np.uint8)
+    out = seq(image=out)
 
     return out
 
 
 def create_stretched_data(img:np.ndarray, position: np.ndarray):
-    aug = iaa.Affine(scale={"x": 0.4})
+    aug = iaa.ScaleY(2)
     
-    mask = position[:, :-1].astype(np.uint8)
+    translated_pos = position.copy()
+    min_x_value = np.min(translated_pos[:, 0])
+    translated_pos[:,0] += np.abs(min_x_value)
+
+    mask = np.round(translated_pos[:, :-1]).astype(np.uint8)
     canvas = np.zeros(img.shape, dtype=np.float32)
     for pt in mask:
         canvas[pt[0], pt[1]] = (255., 255., 255.)
@@ -240,16 +298,39 @@ def create_stretched_data(img:np.ndarray, position: np.ndarray):
 
 
 if __name__ == '__main__':
-    import time
-    from skimage import io
+    # import time
+    # from skimage import io
 
-    x = io.imread('data/images/AFLW2000-crop/image00004/image00004_cropped.jpg') / 255.
-    x = x.astype(np.float32)
-    y = np.load('data/images/AFLW2000-crop/image00004/image00004_cropped_uv_posmap.npy')
-    y = y.astype(np.float32)
+    # x = io.imread('data/images/AFLW2000-crop/image00004/image00004_cropped.jpg') / 255.
+    # x = x.astype(np.float32)
+    # y = np.load('data/images/AFLW2000-crop/image00004/image00004_cropped_uv_posmap.npy')
+    # y = y.astype(np.float32)
 
-    t1 = time.clock()
-    for i in range(1000):
-        xr, yr = prnAugment_torch(x, y)
+    # t1 = time.clock()
+    # for i in range(1000):
+    #     xr, yr = prnAugment_torch(x, y)
 
-    print(time.clock() - t1)
+    # print(time.clock() - t1)
+
+    import tqdm
+    for i in tqdm.tqdm(range(1000)):
+        img = cv2.imread("data/images/AFLW2000-crop/image00981/image00981_cropped.jpg")
+        uv =  np.load("data/images/AFLW2000-crop/image00981/image00981_cropped_uv_posmap.npy", allow_pickle=True).astype(np.float32)
+
+        img,  _, _ = prnAugment_torch(img, uv)
+        cv2.imwrite(f"data/test_augment/{i}.jpg", img)
+    
+    # img = cv2.imread("data/images/AFLW2000-crop/image00981/image00981_cropped.jpg")
+    # img = iaa.imgcorruptlike.Pixelate(severity=5)(image=img)	
+    # img = img /255.
+    # img, _, _ = rotateData(img, img, specify_angle=360)
+    # img = (img*255).astype(np.uint8)
+
+    # cv2.imshow('', img)
+    
+    # #waits for user to press any key 
+    # #(this is necessary to avoid Python kernel form crashing)
+    # cv2.waitKey(0) 
+    
+    # #closing all open windows 
+    # cv2.destroyAllWindows() 

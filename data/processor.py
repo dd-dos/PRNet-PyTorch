@@ -128,13 +128,6 @@ class DataProcessor:
         position[:, 2] = position[:, 2] - np.min(position[:, 2])  # translate z
 
         # 4. uv position map: render position in uv space
-        import cv2
-        from utils.augmentation import create_stretched_data
-        img = cv2.imread(self.image_path)
-        # aug = create_stretched_data(img, position)
-
-        import ipdb; ipdb.set_trace(context=10)
-
         [uv_h, uv_w, uv_c] = DEFAULT_UVMAP_SHAPE
         uv_position_map = mesh.render.render_colors(UV_COORDS, BFM.full_triangles, position, uv_h,
                                                     uv_w, uv_c)
