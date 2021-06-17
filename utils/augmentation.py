@@ -7,6 +7,8 @@ import imgaug.augmenters as iaa
 from numpy.lib.type_check import imag
 
 seq = iaa.Sequential([
+    iaa.Sometimes(0.1, iaa.color.Grayscale()),
+
     iaa.Sometimes(0.1, iaa.MotionBlur(k=(5, 13), angle=(-45, 45))),
 
     # Low resolution
