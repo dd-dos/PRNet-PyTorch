@@ -47,11 +47,7 @@ class FacePatternModel:
     @except_serving
     def pre_process_single_img(self, img: np.ndarray):
         # Resize
-        try:
-            img = cv2.resize(img, (256,256))
-        except Exception as e:
-            logging.error(e)
-            import ipdb; ipdb.set_trace(context=10)
+        img = cv2.resize(img, (256,256))
 
         # Normalize
         img = (img/255).astype(np.float32)
