@@ -27,9 +27,9 @@ def video_infer(args):
             frame_width = int(cap.get(3))
             frame_height = int(cap.get(4))
             size = (frame_width, frame_height)
-            out = cv2.VideoWriter('cam-inference.avi', 
+            out = cv2.VideoWriter('prnet.avi', 
                                 cv2.VideoWriter_fourcc(*'MJPG'),
-                                30, size)
+                                10, size)
     
     model = FacePatternModel(args.model_path)
     face_detector = torch.jit.load(args.face_detector_path) 
